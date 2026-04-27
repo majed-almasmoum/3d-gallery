@@ -28,6 +28,11 @@ type UploadPreview = {
   dataUrl: string;
 };
 
+type VerifyResult = {
+  ok: boolean;
+  error?: string;
+};
+
 const colorLabels: Record<ColorMethod, string> = {
   none: "بدون تلوين",
   printed: "طُبع ملون",
@@ -160,8 +165,8 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
     const storedPassword = sessionStorage.getItem("adminPw") || "";
     if (!storedPassword) return;
 
-    verifyPassword(storedPassword).then((ok) => {
-      if (ok) {
+    verifyPassword(storedPassword).then((result) => {
+      if (result.ok) {
         setAdminPassword(storedPassword);
         setAdminMode(true);
       } else {
@@ -214,28 +219,38 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
     setToast({ message, type });
   }
 
-  async function verifyPassword(password: string) {
+  async function verifyPassword(password: string): Promise<VerifyResult> {
     try {
-      await fetch("/api/verify-password", {
+      const response = await fetch("/api/verify-password", {
         method: "POST",
         headers: {
           "x-admin-password": password,
         },
-      }).then((response) => {
-        if (!response.ok) throw new Error("bad password");
       });
-      return true;
-    } catch {
-      return false;
+
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          ok: false,
+          error: data.error || "كلمة المرور غير صحيحة",
+        };
+      }
+
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        error: getErrorMessage(error),
+      };
     }
   }
 
   async function submitPassword() {
     if (!passwordInput.trim()) return;
 
-    const ok = await verifyPassword(passwordInput.trim());
-    if (!ok) {
-      showToast("كلمة المرور غير صحيحة", "err");
+    const result = await verifyPassword(passwordInput);
+    if (!result.ok) {
+      showToast(result.error || "كلمة المرور غير صحيحة", "err");
       return;
     }
 

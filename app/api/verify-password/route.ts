@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-  const password = request.headers.get("x-admin-password");
+function normalizePassword(value: string | null | undefined) {
+  return (value || "").trim().replace(/^['"]|['"]$/g, "");
+}
 
-  if (!process.env.ADMIN_PASSWORD || password !== process.env.ADMIN_PASSWORD) {
-    return NextResponse.json({ ok: false }, { status: 401 });
+export async function POST(request: NextRequest) {
+  const password = normalizePassword(request.headers.get("x-admin-password"));
+  const adminPassword = normalizePassword(process.env.ADMIN_PASSWORD);
+
+  if (!adminPassword) {
+    return NextResponse.json(
+      { ok: false, error: "ADMIN_PASSWORD غير موجود في إعدادات Vercel" },
+      { status: 500 },
+    );
+  }
+
+  if (password !== adminPassword) {
+    return NextResponse.json(
+      { ok: false, error: "كلمة المرور غير صحيحة" },
+      { status: 401 },
+    );
   }
 
   return NextResponse.json({ ok: true });
