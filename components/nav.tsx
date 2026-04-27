@@ -7,36 +7,45 @@ type NavProps = {
 
 export function Nav({ active }: NavProps) {
   return (
-    <nav className="sticky top-0 z-50 border-b border-white/10 bg-[#15151d]/95 px-5 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between">
-        <Link href="/" aria-label="الرئيسية" className="flex items-center">
-          <Image
-            src="/logo.PNG"
-            alt="Majed 3D Printing"
-            width={128}
-            height={48}
-            className="h-10 w-auto object-contain"
-            priority
-          />
+    <nav className="sticky top-0 z-30 border-b border-white/10 bg-[#0b0b10]/80 px-4 backdrop-blur-xl sm:px-6">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3">
+        <Link
+          href="/"
+          aria-label="الرئيسية"
+          className="flex items-center gap-2.5 transition hover:opacity-90"
+        >
+          <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white/5 sm:h-10 sm:w-10">
+            <Image
+              src="/logo.PNG"
+              alt="Majed 3D Printing"
+              width={64}
+              height={64}
+              className="h-full w-full object-cover"
+              priority
+            />
+          </span>
+          <span className="hidden text-sm font-bold text-white sm:inline">
+            Majed · 3D Printing
+          </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 p-1">
           <Link
             href="/"
-            className={`rounded-lg px-4 py-2 text-sm transition ${
+            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition sm:px-4 sm:text-sm ${
               active === "home"
-                ? "border border-[#fb923c]/30 bg-[#fb923c]/10 text-[#fb923c]"
-                : "text-white/55 hover:bg-white/10 hover:text-white"
+                ? "bg-gradient-to-l from-[#fb923c] to-[#f59e0b] text-black shadow-lg shadow-[#fb923c]/15"
+                : "text-white/55 hover:bg-white/5 hover:text-white"
             }`}
           >
             الرئيسية
           </Link>
           <Link
             href="/gallery"
-            className={`rounded-lg px-4 py-2 text-sm transition ${
+            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition sm:px-4 sm:text-sm ${
               active === "gallery"
-                ? "border border-[#fb923c]/30 bg-[#fb923c]/10 text-[#fb923c]"
-                : "text-white/55 hover:bg-white/10 hover:text-white"
+                ? "bg-gradient-to-l from-[#fb923c] to-[#f59e0b] text-black shadow-lg shadow-[#fb923c]/15"
+                : "text-white/55 hover:bg-white/5 hover:text-white"
             }`}
           >
             الأعمال

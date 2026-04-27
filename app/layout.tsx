@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AdminProvider } from "@/components/admin-context";
+import { AdminLock } from "@/components/admin-lock";
 
 export const metadata: Metadata = {
   title: "Majed Almasmoum · 3D Printing Portfolio",
@@ -13,7 +15,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl">
-      <body>{children}</body>
+      <body>
+        <AdminProvider>
+          {children}
+          <AdminLock />
+        </AdminProvider>
+      </body>
     </html>
   );
 }

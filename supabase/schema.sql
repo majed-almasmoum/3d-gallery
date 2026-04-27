@@ -19,6 +19,21 @@ for select
 to anon
 using (true);
 
+create table if not exists public.site_content (
+  key text primary key,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.site_content enable row level security;
+
+drop policy if exists "Public can read site content" on public.site_content;
+create policy "Public can read site content"
+on public.site_content
+for select
+to anon
+using (true);
+
 insert into storage.buckets (id, name, public)
 values ('images', 'images', true)
 on conflict (id) do update set public = excluded.public;
