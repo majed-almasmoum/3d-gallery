@@ -518,7 +518,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5 px-5 pb-24 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
+      <section className="mx-auto grid max-w-6xl grid-cols-3 gap-3 px-4 pb-24 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] sm:gap-5 sm:px-5">
         {filteredWorks.length ? (
           filteredWorks.map((work, index) => (
             <article
@@ -528,7 +528,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
             >
               <button
                 type="button"
-                className="group relative block h-60 w-full overflow-hidden bg-black/30 text-right sm:h-64"
+                className="group relative block h-28 w-full overflow-hidden bg-black/30 text-right sm:h-64"
                 onClick={() => work.images[0] && setLightbox({ work, index: 0 })}
               >
                 {work.images[0] ? (
@@ -594,27 +594,29 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                 ) : null}
               </button>
 
-              <div className="p-5">
-                <h2 className="font-display truncate text-2xl text-[var(--foreground)]">{work.name}</h2>
-                <p className="mt-2 min-h-12 text-sm leading-6 text-[var(--muted)]">
+              <div className="p-2.5 sm:p-5">
+                <h2 className="truncate text-xs font-semibold text-[var(--foreground)] sm:font-display sm:text-2xl">
+                  {work.name}
+                </h2>
+                <p className="mt-2 hidden min-h-12 text-sm leading-6 text-[var(--muted)] sm:block">
                   {summarizeDescription(work.description)}
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Tag className="border-[color:var(--gold)]/25 bg-[color:var(--gold)]/10 text-[color:var(--gold)]">
+                <div className="mt-2 flex flex-wrap gap-1 sm:mt-3 sm:gap-2">
+                  <Tag className="border-[color:var(--gold)]/25 bg-[color:var(--gold)]/10 text-[10px] text-[color:var(--gold)] sm:text-[color:var(--gold)]">
                     {work.material}
                   </Tag>
                   {work.printHours !== "—" ? (
-                    <Tag className="border-cyan-300/25 bg-cyan-300/10 text-cyan-300">
+                    <Tag className="hidden border-cyan-300/25 bg-cyan-300/10 text-cyan-300 sm:inline-flex">
                       <Clock3 className="ml-1 inline h-3 w-3" />
                       {work.printHours}h
                     </Tag>
                   ) : null}
-                  <Tag className={colorClasses[work.colorMethod]}>
+                  <Tag className={`hidden sm:inline-flex ${colorClasses[work.colorMethod]}`}>
                     <Palette className="ml-1 inline h-3 w-3" />
                     {colorLabels[work.colorMethod]}
                   </Tag>
                 </div>
-                <div className="mt-4 flex items-center justify-between text-xs text-[var(--subtle)]">
+                <div className="mt-2 hidden items-center justify-between text-xs text-[var(--subtle)] sm:flex">
                   <span>عرض التفاصيل</span>
                   <span>{work.addedAt ? new Date(work.addedAt).getFullYear() : ""}</span>
                 </div>

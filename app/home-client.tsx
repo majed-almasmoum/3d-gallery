@@ -150,35 +150,33 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
       <Nav active="home" />
 
       <section className="mx-auto max-w-6xl px-5 pb-12 pt-10 sm:pt-12 lg:pt-16">
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
           <div className="luxury-panel rounded-[34px] p-7 sm:p-9 lg:p-11">
             <p className="mb-5 inline-flex rounded-full border border-[color:var(--gold)]/25 bg-[color:var(--gold)]/8 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[color:var(--gold-strong)]">
               {content.badge}
             </p>
 
-            <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_220px] xl:items-end">
-              <div>
-                <h1 className="font-display text-[clamp(3.1rem,13vw,7rem)] leading-[0.95] text-[var(--foreground)]">
-                  {content.titleLine1}
-                  <br />
-                  <span className="text-[color:var(--gold)]">{content.titleLine2}</span>
-                </h1>
-                <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--muted)] md:text-lg">
-                  {content.subtitle}
-                </p>
-              </div>
+            <div className="max-w-3xl">
+              <h1 className="font-display text-[clamp(2.7rem,8vw,5.8rem)] leading-[0.92] text-[var(--foreground)]">
+                {content.titleLine1}
+                <br />
+                <span className="text-[color:var(--gold)]">{content.titleLine2}</span>
+              </h1>
+              <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--muted)] md:text-lg">
+                {content.subtitle}
+              </p>
+            </div>
 
-              <div className="space-y-3">
-                {content.stats.map((stat) => (
-                  <div
-                    key={stat.value}
-                    className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4"
-                  >
-                    <div className="font-display text-3xl text-[color:var(--gold)]">{stat.value}</div>
-                    <p className="mt-2 text-sm leading-6 text-[var(--subtle)]">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {content.stats.map((stat) => (
+                <div
+                  key={stat.value}
+                  className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4"
+                >
+                  <div className="font-display text-3xl text-[color:var(--gold)]">{stat.value}</div>
+                  <p className="mt-2 text-sm leading-6 text-[var(--subtle)]">{stat.label}</p>
+                </div>
+              ))}
             </div>
 
             <div className="mt-8 flex flex-wrap gap-2">
@@ -195,7 +193,7 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/gallery"
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] px-6 text-sm font-bold text-black shadow-lg shadow-black/35 transition hover:opacity-90"
+                className="inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] px-5 text-sm font-bold text-black shadow-lg shadow-black/35 transition hover:opacity-90 sm:px-6"
               >
                 <Images size={18} />
                 استعرض الأعمال
@@ -204,7 +202,7 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
                 href={content.whatsappUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-12 items-center gap-2 rounded-full border border-[color:var(--gold)]/20 bg-[color:var(--crimson)]/18 px-6 text-sm font-semibold text-[var(--foreground)] transition hover:border-[color:var(--gold)]/40 hover:bg-[color:var(--crimson)]/26"
+                className="inline-flex h-12 items-center gap-2 rounded-full border border-[color:var(--gold)]/20 bg-[color:var(--crimson)]/18 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[color:var(--gold)]/40 hover:bg-[color:var(--crimson)]/26 sm:px-6"
               >
                 <MessageCircle size={18} />
                 تواصل مباشر
