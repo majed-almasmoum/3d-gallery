@@ -1,8 +1,18 @@
 import { worksBucket } from "@/lib/supabase/config";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { SiteContent, SiteSocial } from "@/types/site";
+import type { SiteContent, SiteLayout, SiteSocial } from "@/types/site";
 
 export const siteContentPath = "site/content.json";
+
+export const defaultSiteLayout: SiteLayout = {
+  titleScale: 100,
+  socialIconSize: 48,
+  statsColumns: 3,
+  printerColumns: 4,
+  socialColumns: 4,
+  showProfileCard: true,
+  sectionOrder: ["profile", "printers", "socials", "about"],
+};
 
 export const defaultSiteContent: SiteContent = {
   badge: "3D Printing · PLA · FDM",
@@ -77,6 +87,7 @@ export const defaultSiteContent: SiteContent = {
       iconSrc: "/social/gmail.jpg",
     },
   ],
+  layout: defaultSiteLayout,
 };
 
 function normalizeSocials(socials: SiteContent["socials"] | undefined): SiteSocial[] {
@@ -90,6 +101,29 @@ function normalizeSocials(socials: SiteContent["socials"] | undefined): SiteSoci
   });
 }
 
+function normalizeLayout(layout: Partial<SiteLayout> | undefined): SiteLayout {
+  const sectionOrder = (layout?.sectionOrder || []).filter((section) =>
+    defaultSiteLayout.sectionOrder.includes(section),
+  );
+
+  const mergedSectionOrder = [
+    ...sectionOrder,
+    ...defaultSiteLayout.sectionOrder.filter((section) => !sectionOrder.includes(section)),
+  ];
+
+  return {
+    ...defaultSiteLayout,
+    ...layout,
+    statsColumns: Math.min(3, Math.max(1, Number(layout?.statsColumns || defaultSiteLayout.statsColumns))) as 1 | 2 | 3,
+    printerColumns: Math.min(4, Math.max(1, Number(layout?.printerColumns || defaultSiteLayout.printerColumns))) as 1 | 2 | 3 | 4,
+    socialColumns: Math.min(4, Math.max(2, Number(layout?.socialColumns || defaultSiteLayout.socialColumns))) as 2 | 3 | 4,
+    titleScale: Math.min(130, Math.max(70, Number(layout?.titleScale || defaultSiteLayout.titleScale))),
+    socialIconSize: Math.min(72, Math.max(36, Number(layout?.socialIconSize || defaultSiteLayout.socialIconSize))),
+    showProfileCard: layout?.showProfileCard ?? defaultSiteLayout.showProfileCard,
+    sectionOrder: mergedSectionOrder,
+  };
+}
+
 export function normalizeSiteContent(content: Partial<SiteContent>): SiteContent {
   return {
     ...defaultSiteContent,
@@ -98,6 +132,7 @@ export function normalizeSiteContent(content: Partial<SiteContent>): SiteContent
     printers: content.printers?.length ? content.printers : defaultSiteContent.printers,
     about: content.about?.length ? content.about : defaultSiteContent.about,
     socials: normalizeSocials(content.socials),
+    layout: normalizeLayout(content.layout),
   };
 }
 

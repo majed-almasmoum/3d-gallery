@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
+  ArrowDown,
+  ArrowUp,
   Images,
   Lock,
   MessageCircle,
@@ -12,7 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { Nav } from "@/components/nav";
-import type { SiteContent, SiteSocial } from "@/types/site";
+import type { SiteContent, SiteSectionKey, SiteSocial } from "@/types/site";
 
 type VerifyResult = {
   ok: boolean;
@@ -24,6 +26,13 @@ const socialIconFallbacks: Record<SiteSocial["key"], string> = {
   instagram: "/social/instagram.png",
   tiktok: "/social/tiktok.webp",
   email: "/social/gmail.jpg",
+};
+
+const sectionLabels: Record<SiteSectionKey, string> = {
+  profile: "بطاقة الاستوديو",
+  printers: "الطابعات",
+  socials: "التواصل",
+  about: "نبذة عني",
 };
 
 function getErrorMessage(error: unknown) {
@@ -117,6 +126,24 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
     setShowEditModal(true);
   }
 
+  function updateSectionOrder(section: SiteSectionKey, direction: -1 | 1) {
+    const currentIndex = draft.layout.sectionOrder.indexOf(section);
+    const nextIndex = currentIndex + direction;
+    if (currentIndex === -1 || nextIndex < 0 || nextIndex >= draft.layout.sectionOrder.length) {
+      return;
+    }
+
+    const nextOrder = [...draft.layout.sectionOrder];
+    [nextOrder[currentIndex], nextOrder[nextIndex]] = [nextOrder[nextIndex], nextOrder[currentIndex]];
+    setDraft({
+      ...draft,
+      layout: {
+        ...draft.layout,
+        sectionOrder: nextOrder,
+      },
+    });
+  }
+
   async function saveContent() {
     setSaving(true);
 
@@ -145,98 +172,65 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
     }
   }
 
-  return (
-    <main className="theme-shell min-h-screen text-[var(--foreground)]">
-      <Nav active="home" />
+  const view = showEditModal ? draft : content;
 
-      <section className="mx-auto max-w-6xl px-5 pb-12 pt-10 sm:pt-12 lg:pt-16">
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
-          <div className="luxury-panel rounded-[34px] p-7 sm:p-9 lg:p-11">
-            <p className="mb-5 inline-flex rounded-full border border-[color:var(--gold)]/25 bg-[color:var(--gold)]/8 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[color:var(--gold-strong)]">
-              {content.badge}
-            </p>
+  const activeSections = view.layout.sectionOrder.filter(
+    (section) => section !== "profile" || view.layout.showProfileCard,
+  );
 
-            <div className="max-w-3xl">
-              <h1 className="font-display text-[clamp(2.7rem,8vw,5.8rem)] leading-[0.92] text-[var(--foreground)]">
-                {content.titleLine1}
-                <br />
-                <span className="text-[color:var(--gold)]">{content.titleLine2}</span>
-              </h1>
-              <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--muted)] md:text-lg">
-                {content.subtitle}
-              </p>
+  const titleSize = `clamp(2.4rem, 7vw, ${(view.layout.titleScale / 100) * 5.8}rem)`;
+  const statsGridClass =
+    view.layout.statsColumns === 1
+      ? "xl:grid-cols-1"
+      : view.layout.statsColumns === 2
+        ? "sm:grid-cols-2 xl:grid-cols-2"
+        : "sm:grid-cols-2 xl:grid-cols-3";
+  const printerGridClass =
+    view.layout.printerColumns === 1
+      ? "lg:grid-cols-1"
+      : view.layout.printerColumns === 2
+        ? "sm:grid-cols-2 lg:grid-cols-2"
+        : view.layout.printerColumns === 3
+          ? "sm:grid-cols-2 lg:grid-cols-3"
+          : "sm:grid-cols-2 lg:grid-cols-4";
+  const socialGridClass =
+    view.layout.socialColumns === 2
+      ? "grid-cols-2"
+      : view.layout.socialColumns === 3
+        ? "grid-cols-3"
+        : "grid-cols-2 sm:grid-cols-4";
+
+  function renderProfileSection() {
+    return (
+      <section key="profile" className="mx-auto max-w-6xl px-5 pb-14">
+        <div className="luxury-panel rounded-[30px] p-6">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--subtle)]">
+            Studio Profile
+          </p>
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <div className="border-b border-white/8 pb-4 sm:border-b-0 sm:border-l sm:pl-4">
+              <div className="font-display text-3xl text-[color:var(--gold)]">{view.printers.length}</div>
+              <p className="mt-2 text-sm text-[var(--muted)]">منصات طباعة مخصصة لأحجام وأنماط مختلفة</p>
             </div>
-
-            <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {content.stats.map((stat) => (
-                <div
-                  key={stat.value}
-                  className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4"
-                >
-                  <div className="font-display text-3xl text-[color:var(--gold)]">{stat.value}</div>
-                  <p className="mt-2 text-sm leading-6 text-[var(--subtle)]">{stat.label}</p>
-                </div>
-              ))}
+            <div className="border-b border-white/8 pb-4 sm:border-b-0 sm:border-l sm:pl-4">
+              <div className="font-display text-3xl text-[color:var(--gold)]">{view.socials.length}</div>
+              <p className="mt-2 text-sm text-[var(--muted)]">قنوات جاهزة لاستقبال الطلبات والتواصل</p>
             </div>
-
-            <div className="mt-8 flex flex-wrap gap-2">
-              {["Commissioned Pieces", "Refined Finish", "Custom Scale", "Collector Display"].map((item) => (
-                <span
-                  key={item}
-                  className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]"
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/gallery"
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] px-5 text-sm font-bold text-black shadow-lg shadow-black/35 transition hover:opacity-90 sm:px-6"
-              >
-                <Images size={18} />
-                استعرض الأعمال
-              </Link>
-              <a
-                href={content.whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex h-12 items-center gap-2 rounded-full border border-[color:var(--gold)]/20 bg-[color:var(--crimson)]/18 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[color:var(--gold)]/40 hover:bg-[color:var(--crimson)]/26 sm:px-6"
-              >
-                <MessageCircle size={18} />
-                تواصل مباشر
-              </a>
+            <div>
+              <div className="font-display text-3xl text-[color:var(--gold)]">2022</div>
+              <p className="mt-2 text-sm text-[var(--muted)]">بداية الرحلة التي تحولت من هواية إلى أسلوب عرض متكامل</p>
             </div>
           </div>
-
-          <aside className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-            <div className="luxury-panel rounded-[30px] p-6">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--subtle)]">
-                Studio Profile
-              </p>
-              <div className="mt-5 grid gap-4">
-                <div className="border-b border-white/8 pb-4">
-                  <div className="font-display text-3xl text-[color:var(--gold)]">{content.printers.length}</div>
-                  <p className="mt-2 text-sm text-[var(--muted)]">منصات طباعة مخصصة لأحجام وأنماط مختلفة</p>
-                </div>
-                <div className="border-b border-white/8 pb-4">
-                  <div className="font-display text-3xl text-[color:var(--gold)]">{content.socials.length}</div>
-                  <p className="mt-2 text-sm text-[var(--muted)]">قنوات جاهزة لاستقبال الطلبات والتواصل</p>
-                </div>
-                <div>
-                  <div className="font-display text-3xl text-[color:var(--gold)]">2022</div>
-                  <p className="mt-2 text-sm text-[var(--muted)]">بداية الرحلة التي تحولت من هواية إلى أسلوب عرض متكامل</p>
-                </div>
-              </div>
-            </div>
-          </aside>
         </div>
       </section>
+    );
+  }
 
-      <section className="mx-auto max-w-6xl px-5 pb-14">
-        <div className="grid gap-4 lg:grid-cols-4">
-          {content.printers.map((printer, index) => (
+  function renderPrintersSection() {
+    return (
+      <section key="printers" className="mx-auto max-w-6xl px-5 pb-14">
+        <div className={`grid gap-4 ${printerGridClass}`}>
+          {view.printers.map((printer, index) => (
             <article
               key={printer.name}
               className="luxury-panel rounded-[26px] p-5 transition hover:-translate-y-1 hover:border-[color:var(--gold)]/25"
@@ -253,21 +247,22 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
           ))}
         </div>
       </section>
+    );
+  }
 
-      <section className="mx-auto max-w-6xl px-5 pb-14">
+  function renderSocialsSection() {
+    return (
+      <section key="socials" className="mx-auto max-w-6xl px-5 pb-14">
         <div className="luxury-panel rounded-[30px] p-7 sm:p-8">
           <div className="mb-6 flex items-end justify-between gap-4 border-b border-white/8 pb-4">
             <div>
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--subtle)]">Connect</p>
               <h2 className="font-display mt-2 text-3xl text-[var(--foreground)]">التواصل</h2>
             </div>
-            <p className="max-w-sm text-sm leading-6 text-[var(--muted)]">
-              حضور موحد للأيقونات والروابط حتى تكون القنوات أوضح وأقرب لشكل التطبيقات الفعلي.
-            </p>
           </div>
 
-          <div className="flex flex-wrap gap-4">
-            {content.socials.map((social) => {
+          <div className={`grid gap-4 ${socialGridClass}`}>
+            {view.socials.map((social) => {
               const iconSrc = social.iconSrc || socialIconFallbacks[social.key];
 
               return (
@@ -278,14 +273,20 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
                   aria-label={`${social.name} ${social.handle}`}
                   target={social.href.startsWith("http") ? "_blank" : undefined}
                   rel={social.href.startsWith("http") ? "noreferrer" : undefined}
-                  className="group flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] p-2 transition hover:-translate-y-1 hover:border-[color:var(--gold)]/28 hover:bg-white/[0.06] sm:h-18 sm:w-18"
+                  className="group flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] p-3 transition hover:-translate-y-1 hover:border-[color:var(--gold)]/28 hover:bg-white/[0.06]"
                 >
-                  <span className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white shadow-lg shadow-black/15 sm:h-12 sm:w-12">
+                  <span
+                    className="relative flex items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white shadow-lg shadow-black/15"
+                    style={{
+                      width: `${view.layout.socialIconSize}px`,
+                      height: `${view.layout.socialIconSize}px`,
+                    }}
+                  >
                     <Image
                       src={iconSrc}
                       alt={social.name}
-                      width={48}
-                      height={48}
+                      width={view.layout.socialIconSize}
+                      height={view.layout.socialIconSize}
                       className="h-full w-full object-cover"
                     />
                   </span>
@@ -296,20 +297,21 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
           </div>
         </div>
       </section>
+    );
+  }
 
-      <section className="mx-auto max-w-6xl px-5 pb-16">
+  function renderAboutSection() {
+    return (
+      <section key="about" className="mx-auto max-w-6xl px-5 pb-16">
         <div className="luxury-panel rounded-[30px] p-7 sm:p-9">
           <div className="mb-6 flex items-end justify-between gap-4 border-b border-white/8 pb-4">
             <div>
               <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--subtle)]">About</p>
               <h2 className="font-display mt-2 text-3xl text-[var(--foreground)]">نبذة عني</h2>
             </div>
-            <p className="max-w-sm text-sm leading-6 text-[var(--muted)]">
-              تعريف أكثر هدوءاً بالشخصية والخبرة بدل الصندوق التقليدي القديم.
-            </p>
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
-            {content.about.map((paragraph, index) => (
+            {view.about.map((paragraph, index) => (
               <p
                 key={paragraph}
                 className={`text-sm leading-8 text-[var(--muted)] ${index === 0 ? "lg:pl-4" : ""}`}
@@ -320,6 +322,85 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
           </div>
         </div>
       </section>
+    );
+  }
+
+  function renderSection(section: SiteSectionKey) {
+    if (section === "profile") return renderProfileSection();
+    if (section === "printers") return renderPrintersSection();
+    if (section === "socials") return renderSocialsSection();
+    return renderAboutSection();
+  }
+
+  return (
+    <main className="theme-shell min-h-screen text-[var(--foreground)]">
+      <Nav active="home" />
+
+      <section className="mx-auto max-w-6xl px-5 pb-12 pt-10 sm:pt-12 lg:pt-16">
+        <div className="luxury-panel rounded-[34px] p-7 sm:p-9 lg:p-11">
+          <p className="mb-5 inline-flex rounded-full border border-[color:var(--gold)]/25 bg-[color:var(--gold)]/8 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[color:var(--gold-strong)]">
+            {view.badge}
+          </p>
+
+          <div className="max-w-3xl">
+            <h1
+              className="font-display leading-[0.92] text-[var(--foreground)]"
+              style={{ fontSize: titleSize }}
+            >
+              {view.titleLine1}
+              <br />
+              <span className="text-[color:var(--gold)]">{view.titleLine2}</span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--muted)] md:text-lg">
+              {view.subtitle}
+            </p>
+          </div>
+
+          <div className={`mt-8 grid gap-3 ${statsGridClass}`}>
+            {view.stats.map((stat) => (
+              <div
+                key={stat.value}
+                className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4"
+              >
+                <div className="font-display text-3xl text-[color:var(--gold)]">{stat.value}</div>
+                <p className="mt-2 text-sm leading-6 text-[var(--subtle)]">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-2">
+            {["Commissioned Pieces", "Refined Finish", "Custom Scale", "Collector Display"].map((item) => (
+              <span
+                key={item}
+                className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/gallery"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] px-5 text-sm font-bold text-black shadow-lg shadow-black/35 transition hover:opacity-90 sm:px-6"
+            >
+              <Images size={18} />
+              استعرض الأعمال
+            </Link>
+            <a
+              href={view.whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-12 items-center gap-2 rounded-full border border-[color:var(--gold)]/20 bg-[color:var(--crimson)]/18 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[color:var(--gold)]/40 hover:bg-[color:var(--crimson)]/26 sm:px-6"
+            >
+              <MessageCircle size={18} />
+              تواصل مباشر
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {activeSections.map((section) => renderSection(section))}
 
       <div className="fixed bottom-6 left-6 z-40 flex flex-col gap-3">
         {adminMode ? (
@@ -547,6 +628,215 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
                   className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-[#fb923c]/50"
                 />
               </label>
+            </div>
+
+            <div className="mt-6 rounded-[24px] border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+              <div className="mb-4">
+                <h3 className="text-sm font-black text-white">التحكم الكامل في الصفحة</h3>
+                <p className="mt-1 text-xs text-white/45">
+                  من هنا تقدر تغيّر الحجم والأيقونات وترتيب الأقسام وتظهر أو تخفي أي جزء.
+                </p>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <label className="block rounded-2xl border border-white/8 bg-black/20 p-4">
+                  <span className="mb-2 flex items-center justify-between text-sm font-bold text-white">
+                    <span>حجم العنوان الرئيسي</span>
+                    <span className="text-[#f5c97a]">{draft.layout.titleScale}%</span>
+                  </span>
+                  <input
+                    type="range"
+                    min="70"
+                    max="130"
+                    value={draft.layout.titleScale}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        layout: {
+                          ...draft.layout,
+                          titleScale: Number(event.target.value),
+                        },
+                      })
+                    }
+                    className="w-full accent-[#f5c97a]"
+                  />
+                </label>
+
+                <label className="block rounded-2xl border border-white/8 bg-black/20 p-4">
+                  <span className="mb-2 flex items-center justify-between text-sm font-bold text-white">
+                    <span>حجم أيقونات التواصل</span>
+                    <span className="text-[#f5c97a]">{draft.layout.socialIconSize}px</span>
+                  </span>
+                  <input
+                    type="range"
+                    min="36"
+                    max="72"
+                    value={draft.layout.socialIconSize}
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        layout: {
+                          ...draft.layout,
+                          socialIconSize: Number(event.target.value),
+                        },
+                      })
+                    }
+                    className="w-full accent-[#f5c97a]"
+                  />
+                </label>
+
+                <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+                  <span className="mb-3 block text-sm font-bold text-white">عدد أعمدة الإحصائيات</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[1, 2, 3].map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        onClick={() =>
+                          setDraft({
+                            ...draft,
+                            layout: {
+                              ...draft.layout,
+                              statsColumns: count as 1 | 2 | 3,
+                            },
+                          })
+                        }
+                        className={`h-10 rounded-xl border text-sm font-bold transition ${
+                          draft.layout.statsColumns === count
+                            ? "border-[#f5c97a]/60 bg-[#f5c97a]/15 text-[#f5c97a]"
+                            : "border-white/10 bg-white/5 text-white/65 hover:bg-white/10"
+                        }`}
+                      >
+                        {count}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+                  <span className="mb-3 block text-sm font-bold text-white">عدد أعمدة الطابعات</span>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[1, 2, 3, 4].map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        onClick={() =>
+                          setDraft({
+                            ...draft,
+                            layout: {
+                              ...draft.layout,
+                              printerColumns: count as 1 | 2 | 3 | 4,
+                            },
+                          })
+                        }
+                        className={`h-10 rounded-xl border text-sm font-bold transition ${
+                          draft.layout.printerColumns === count
+                            ? "border-[#f5c97a]/60 bg-[#f5c97a]/15 text-[#f5c97a]"
+                            : "border-white/10 bg-white/5 text-white/65 hover:bg-white/10"
+                        }`}
+                      >
+                        {count}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-white/8 bg-black/20 p-4">
+                  <span className="mb-3 block text-sm font-bold text-white">عدد أعمدة التواصل</span>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[2, 3, 4].map((count) => (
+                      <button
+                        key={count}
+                        type="button"
+                        onClick={() =>
+                          setDraft({
+                            ...draft,
+                            layout: {
+                              ...draft.layout,
+                              socialColumns: count as 2 | 3 | 4,
+                            },
+                          })
+                        }
+                        className={`h-10 rounded-xl border text-sm font-bold transition ${
+                          draft.layout.socialColumns === count
+                            ? "border-[#f5c97a]/60 bg-[#f5c97a]/15 text-[#f5c97a]"
+                            : "border-white/10 bg-white/5 text-white/65 hover:bg-white/10"
+                        }`}
+                      >
+                        {count}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between rounded-2xl border border-white/8 bg-black/20 p-4">
+                  <div>
+                    <span className="block text-sm font-bold text-white">إظهار بطاقة الاستوديو</span>
+                    <span className="mt-1 block text-xs text-white/45">بدّل ظهورها من الصفحة الرئيسية.</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDraft({
+                        ...draft,
+                        layout: {
+                          ...draft.layout,
+                          showProfileCard: !draft.layout.showProfileCard,
+                        },
+                      })
+                    }
+                    className={`relative h-8 w-14 rounded-full transition ${
+                      draft.layout.showProfileCard ? "bg-[#f5c97a]" : "bg-white/10"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-1 h-6 w-6 rounded-full bg-[#121217] transition ${
+                        draft.layout.showProfileCard ? "right-1" : "right-7"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-white/8 bg-black/20 p-4">
+                <div className="mb-3">
+                  <h4 className="text-sm font-black text-white">إعادة ترتيب الأقسام</h4>
+                  <p className="mt-1 text-xs text-white/45">قدّم وأخّر الأقسام يدويًا حسب الشكل اللي يناسبك.</p>
+                </div>
+                <div className="space-y-2">
+                  {draft.layout.sectionOrder.map((section, index) => (
+                    <div
+                      key={section}
+                      className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/20 text-xs text-white/55">
+                          {index + 1}
+                        </span>
+                        <span className="text-sm font-bold text-white">{sectionLabels[section]}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateSectionOrder(section, -1)}
+                          disabled={index === 0}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+                        >
+                          <ArrowUp size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateSectionOrder(section, 1)}
+                          disabled={index === draft.layout.sectionOrder.length - 1}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"
+                        >
+                          <ArrowDown size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
