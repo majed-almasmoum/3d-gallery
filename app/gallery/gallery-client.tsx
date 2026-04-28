@@ -7,6 +7,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  Eye,
+  EyeOff,
   ImagePlus,
   Images,
   KeyRound,
@@ -17,11 +19,13 @@ import {
   Plus,
   Printer,
   Save,
+  Settings2,
   Trash2,
   Upload,
   X,
 } from "lucide-react";
 import { Nav } from "@/components/nav";
+import type { GallerySettings, GalleryStatCardKey } from "@/types/gallery-settings";
 import type { ColorMethod, Work, WorkDraft } from "@/types/work";
 
 type UploadPreview = {
@@ -46,6 +50,12 @@ const colorClasses: Record<ColorMethod, string> = {
   none: "border-white/10 bg-white/5 text-white/45",
   printed: "border-emerald-300/25 bg-emerald-300/10 text-emerald-300",
   painted: "border-violet-300/25 bg-violet-300/10 text-violet-300",
+};
+
+const statCardLabels: Record<GalleryStatCardKey, string> = {
+  works: "الأعمال",
+  materials: "الخامات",
+  colored: "الأعمال الملونة",
 };
 
 function getErrorMessage(error: unknown) {
@@ -75,34 +85,33 @@ function Tag({
   );
 }
 
-async function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
-
 function canRasterizeInBrowser(file: File) {
   const extension = file.name.split(".").pop()?.toLowerCase() || "";
   return !["heic", "heif"].includes(extension);
 }
 
+async function convertHeicToJpeg(file: File): Promise<File> {
+  const { default: heic2any } = await import("heic2any");
+  const converted = await heic2any({
+    blob: file,
+    toType: "image/jpeg",
+    quality: 0.9,
+  });
+  const blob = Array.isArray(converted) ? converted[0] : converted;
+
+  return new File(
+    [blob as Blob],
+    file.name.replace(/\.(heic|heif)$/i, ".jpg"),
+    { type: "image/jpeg" },
+  );
+}
+
 async function resizeImage(file: File): Promise<UploadPreview> {
-  if (!canRasterizeInBrowser(file)) {
-    const dataUrl = await readFileAsDataUrl(file);
-    return {
-      file,
-      base64: dataUrl.split(",")[1] || "",
-      dataUrl,
-      contentType: file.type || "image/heic",
-    };
-  }
+  const sourceFile = canRasterizeInBrowser(file) ? file : await convertHeicToJpeg(file);
 
   return new Promise((resolve, reject) => {
     const image = new Image();
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(sourceFile);
 
     image.onload = () => {
       const maxSize = 1280;
@@ -135,7 +144,7 @@ async function resizeImage(file: File): Promise<UploadPreview> {
           reader.onload = () => {
             const dataUrl = String(reader.result);
             resolve({
-              file,
+              file: sourceFile,
               base64: dataUrl.split(",")[1] || "",
               dataUrl,
               contentType: "image/jpeg",
@@ -165,8 +174,16 @@ async function jsonFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
-export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
+export function GalleryClient({
+  initialWorks,
+  initialSettings,
+}: {
+  initialWorks: Work[];
+  initialSettings: GallerySettings;
+}) {
   const [works, setWorks] = useState(initialWorks);
+  const [settings, setSettings] = useState<GallerySettings>(initialSettings);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [adminMode, setAdminMode] = useState(false);
@@ -199,6 +216,24 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
       ? works
       : works.filter((work) => work.material === activeFilter);
 
+  const visibleStatCards = [
+    {
+      key: "works" as const,
+      value: works.length,
+      description: "إجمالي العناصر المعروضة",
+    },
+    {
+      key: "materials" as const,
+      value: materials.length || 1,
+      description: "أنواع مواد متاحة للفرز",
+    },
+    {
+      key: "colored" as const,
+      value: works.filter((work) => work.colorMethod !== "none").length,
+      description: "تحتوي على طباعة ملونة أو تلوين يدوي",
+    },
+  ].filter((card) => !settings.hiddenStatCards.includes(card.key));
+
   useEffect(() => {
     const storedPassword = sessionStorage.getItem("adminPw") || "";
     if (!storedPassword) return;
@@ -228,14 +263,14 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
   }, [toast]);
 
   useEffect(() => {
-    document.body.style.overflow = lightbox || showAddModal || showPasswordModal
+    document.body.style.overflow = lightbox || showAddModal || showPasswordModal || showSettingsModal
       ? "hidden"
       : "";
 
     return () => {
       document.body.style.overflow = "";
     };
-  }, [lightbox, showAddModal, showPasswordModal]);
+  }, [lightbox, showAddModal, showPasswordModal, showSettingsModal]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -243,6 +278,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
         setLightbox(null);
         setShowAddModal(false);
         setShowPasswordModal(false);
+        setShowSettingsModal(false);
       }
 
       if (lightbox && event.key === "ArrowLeft") navigateLightbox(1);
@@ -255,6 +291,32 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
 
   function showToast(message: string, type: "ok" | "err" = "ok") {
     setToast({ message, type });
+  }
+
+  async function saveGallerySettings(nextSettings: GallerySettings) {
+    try {
+      const result = await jsonFetch<{ settings: GallerySettings }>("/api/gallery-settings", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-password": adminPassword,
+        },
+        body: JSON.stringify({ settings: nextSettings }),
+      });
+      setSettings(result.settings);
+      showToast("تم حفظ إعدادات واجهة المعرض", "ok");
+    } catch (error) {
+      showToast(getErrorMessage(error), "err");
+    }
+  }
+
+  function updateGallerySettings(patch: Partial<GallerySettings>) {
+    const nextSettings = {
+      ...settings,
+      ...patch,
+    };
+    setSettings(nextSettings);
+    void saveGallerySettings(nextSettings);
   }
 
   async function verifyPassword(password: string): Promise<VerifyResult> {
@@ -525,25 +587,26 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
             ) : null}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
-            <div className="luxury-panel rounded-[24px] p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]">الأعمال</p>
-              <div className="font-display mt-3 text-4xl text-[color:var(--gold)]">{works.length}</div>
-              <p className="mt-1 text-sm text-[var(--muted)]">إجمالي العناصر المعروضة</p>
+          {visibleStatCards.length ? (
+            <div className={`grid gap-4 sm:grid-cols-3 xl:grid-cols-1 ${settings.statsCompact ? "xl:max-w-[240px]" : ""}`}>
+              {visibleStatCards.map((card) => (
+                <div
+                  key={card.key}
+                  className={`luxury-panel rounded-[24px] ${settings.statsCompact ? "p-4" : "p-5"}`}
+                >
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]">
+                    {statCardLabels[card.key]}
+                  </p>
+                  <div className={`font-display text-[color:var(--gold)] ${settings.statsCompact ? "mt-2 text-3xl" : "mt-3 text-4xl"}`}>
+                    {card.value}
+                  </div>
+                  <p className={`text-[var(--muted)] ${settings.statsCompact ? "mt-1 text-xs leading-6" : "mt-1 text-sm"}`}>
+                    {card.description}
+                  </p>
+                </div>
+              ))}
             </div>
-            <div className="luxury-panel rounded-[24px] p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]">الخامات</p>
-              <div className="font-display mt-3 text-4xl text-[color:var(--gold)]">{materials.length || 1}</div>
-              <p className="mt-1 text-sm text-[var(--muted)]">أنواع مواد متاحة للفرز</p>
-            </div>
-            <div className="luxury-panel rounded-[24px] p-5">
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]">الأعمال الملونة</p>
-              <div className="font-display mt-3 text-4xl text-[color:var(--gold)]">
-                {works.filter((work) => work.colorMethod !== "none").length}
-              </div>
-              <p className="mt-1 text-sm text-[var(--muted)]">تحتوي على طباعة ملونة أو تلوين يدوي</p>
-            </div>
-          </div>
+          ) : null}
         </div>
       </section>
 
@@ -678,6 +741,17 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
         {adminMode ? (
           <button
             type="button"
+            title="إعدادات المعرض"
+            aria-label="إعدادات المعرض"
+            onClick={() => setShowSettingsModal(true)}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#1d1d29] text-white/70 shadow-xl shadow-black/35 transition hover:scale-105 hover:bg-white/10"
+          >
+            <Settings2 size={18} />
+          </button>
+        ) : null}
+        {adminMode ? (
+          <button
+            type="button"
             title="إضافة عمل"
             aria-label="إضافة عمل"
             onClick={openAddModal}
@@ -739,6 +813,84 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
               >
                 دخول
               </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {showSettingsModal ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowSettingsModal(false);
+          }}
+        >
+          <div className="w-full max-w-lg rounded-3xl border border-white/10 bg-[#15151b] p-6 shadow-2xl shadow-black/50">
+            <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-4">
+              <div>
+                <h2 className="text-xl font-black text-white">واجهة المعرض</h2>
+                <p className="mt-1 text-sm text-white/45">تحكم في الكروت العلوية: تصغير أو إخفاء.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSettingsModal(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:bg-white/10 hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-black text-white">وضع الكروت المضغوط</h3>
+                    <p className="mt-1 text-xs text-white/45">يصغر ارتفاع ومحتوى الكروت العلوية.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => updateGallerySettings({ statsCompact: !settings.statsCompact })}
+                    className={`relative h-8 w-14 rounded-full transition ${
+                      settings.statsCompact ? "bg-[#f5c97a]" : "bg-white/10"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-1 h-6 w-6 rounded-full bg-[#121217] transition ${
+                        settings.statsCompact ? "right-1" : "right-7"
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <h3 className="mb-3 text-sm font-black text-white">إخفاء أو إظهار الكروت</h3>
+                <div className="space-y-2">
+                  {(["works", "materials", "colored"] as GalleryStatCardKey[]).map((key) => {
+                    const hidden = settings.hiddenStatCards.includes(key);
+                    return (
+                      <div
+                        key={key}
+                        className="flex items-center justify-between rounded-2xl border border-white/8 bg-black/20 px-4 py-3"
+                      >
+                        <span className="text-sm font-bold text-white">{statCardLabels[key]}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const hiddenStatCards = hidden
+                              ? settings.hiddenStatCards.filter((item) => item !== key)
+                              : [...settings.hiddenStatCards, key];
+                            updateGallerySettings({ hiddenStatCards });
+                          }}
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10"
+                        >
+                          {hidden ? <EyeOff size={15} /> : <Eye size={15} />}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </div>
