@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 
 type NavProps = {
@@ -7,71 +6,44 @@ type NavProps = {
 
 export function Nav({ active }: NavProps) {
   return (
-    <nav className="sticky top-0 z-30 border-b border-[#2A2724] bg-[#0A0A0A]/88 px-4 backdrop-blur-xl sm:px-6">
-      <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between gap-4">
-
-        {/* Logo + brand */}
-        <Link
-          href="/"
-          aria-label="الرئيسية"
-          className="flex items-center gap-3 transition hover:opacity-80"
-        >
-          <span className="flex h-10 w-10 items-center justify-center overflow-hidden border border-[#2A2724] bg-[#141414]">
-            <Image
-              src="/logo.PNG"
-              alt="Majed Almasmoum"
-              width={64}
-              height={64}
-              className="h-full w-full object-cover"
-              priority
-            />
+    <nav className="sticky top-0 z-50 border-b border-white/8 bg-[#080706]/78 px-4 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 py-3">
+        <Link href="/" aria-label="الرئيسية" className="group flex min-w-0 items-center gap-3">
+          <span className="font-display flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[color:var(--gold)]/25 bg-white/[0.04] text-xl text-[color:var(--gold)] shadow-lg shadow-black/25 transition group-hover:border-[color:var(--gold)]/45">
+            M
           </span>
-          <span className="hidden flex-col sm:flex">
-            <span
-              className="font-serif text-xl italic leading-none text-[#B22222]"
-              style={{ fontFamily: "'Cormorant Garamond', Georgia, serif" }}
-            >
-              M
+          <span className="min-w-0">
+            <span className="font-display block truncate text-xl text-[var(--foreground)] sm:text-2xl">
+              Majed Almasmoum
             </span>
-            <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#F5F0E8]">
-              MAJED ALMASMOUM
+            <span className="block truncate text-[10px] uppercase tracking-[0.22em] text-[var(--subtle)] sm:text-[11px]">
+              3D Print Studio
             </span>
           </span>
         </Link>
 
-        {/* Nav links */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.04] p-1">
           <Link
             href="/"
-            className={`text-[11px] font-medium uppercase tracking-[0.14em] transition ${
+            className={`rounded-full px-3 py-2 text-sm transition sm:px-4 ${
               active === "home"
-                ? "border-b border-[#9A7A4A] pb-0.5 text-[#F5F0E8]"
-                : "text-[#A09A90] hover:text-[#F5F0E8]"
+                ? "bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] font-semibold text-black shadow-lg shadow-black/25"
+                : "text-white/55 hover:bg-white/8 hover:text-white"
             }`}
           >
             الرئيسية
           </Link>
           <Link
             href="/gallery"
-            className={`text-[11px] font-medium uppercase tracking-[0.14em] transition ${
+            className={`rounded-full px-3 py-2 text-sm transition sm:px-4 ${
               active === "gallery"
-                ? "border-b border-[#9A7A4A] pb-0.5 text-[#F5F0E8]"
-                : "text-[#A09A90] hover:text-[#F5F0E8]"
+                ? "bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] font-semibold text-black shadow-lg shadow-black/25"
+                : "text-white/55 hover:bg-white/8 hover:text-white"
             }`}
           >
             الأعمال
           </Link>
         </div>
-
-        {/* CTA */}
-        <a
-          href="https://wa.me/966568866602"
-          target="_blank"
-          rel="noreferrer"
-          className="hidden items-center gap-2 bg-[#8C1A1A] px-5 py-2.5 text-[11px] font-medium uppercase tracking-[0.1em] text-[#F5F0E8] transition hover:bg-[#B22222] sm:inline-flex"
-        >
-          تواصل
-        </a>
       </div>
     </nav>
   );

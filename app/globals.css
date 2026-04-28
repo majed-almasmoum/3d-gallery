@@ -1,40 +1,96 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@300;400;500&display=swap');
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
-  --crimson:        #8C1A1A;
-  --crimson-light:  #B22222;
-  --gold:           #C9A96E;
-  --gold-muted:     #9A7A4A;
-  --bg-void:        #0A0A0A;
-  --bg-surface:     #141414;
-  --bg-elevated:    #1E1C1C;
-  --fg-primary:     #F5F0E8;
-  --fg-secondary:   #A09A90;
-  --fg-tertiary:    #5A5450;
-  --border:         #2A2724;
+  --background: #080706;
+  --background-alt: #120f0d;
+  --surface: #11100e;
+  --surface-strong: #181411;
+  --foreground: #f6efe6;
+  --muted: rgba(246, 239, 230, 0.64);
+  --subtle: rgba(246, 239, 230, 0.38);
+  --line: rgba(246, 239, 230, 0.1);
+  --gold: #c7a06a;
+  --gold-strong: #e2bf87;
+  --crimson: #7b302d;
+  --font-display: "Iowan Old Style", "Palatino Linotype", "Baskerville", "Times New Roman", "Al Nile", serif;
+  --font-body: "Avenir Next", "SF Pro Text", "Noto Sans Arabic", "Geeza Pro", "Segoe UI", sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 html {
-  direction: rtl;
+  min-height: 100%;
+  background: var(--background);
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--bg-void);
-  color: var(--fg-primary);
-  font-family: 'Tajawal', 'DM Sans', sans-serif;
-  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(123, 48, 45, 0.28), transparent 28%),
+    radial-gradient(circle at top right, rgba(199, 160, 106, 0.16), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(255, 255, 255, 0.04), transparent 28%),
+    var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
 }
 
-.font-serif-display {
-  font-family: 'Amiri', 'Cormorant Garamond', Georgia, serif;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0A0A0A; }
-::-webkit-scrollbar-thumb { background: #2A2724; }
-::-webkit-scrollbar-thumb:hover { background: #9A7A4A; }
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(251, 146, 60, 0.35);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.55s ease both;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.theme-shell {
+  background-image:
+    linear-gradient(180deg, rgba(123, 48, 45, 0.18), transparent 420px),
+    radial-gradient(circle at top right, rgba(199, 160, 106, 0.08), transparent 24%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: auto, auto, 72px 72px, 72px 72px;
+}
+
+.luxury-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015)),
+    var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.26);
+}

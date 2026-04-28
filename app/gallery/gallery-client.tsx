@@ -9,25 +9,30 @@ import {
   Clock3,
   ImagePlus,
   Images,
+  KeyRound,
   Loader2,
+  Lock,
   Palette,
   Pencil,
   Plus,
   Printer,
   Save,
-  Search,
   Trash2,
   Upload,
   X,
 } from "lucide-react";
 import { Nav } from "@/components/nav";
-import { useAdmin } from "@/components/admin-context";
 import type { ColorMethod, Work, WorkDraft } from "@/types/work";
 
 type UploadPreview = {
   file: File;
   base64: string;
   dataUrl: string;
+};
+
+type VerifyResult = {
+  ok: boolean;
+  error?: string;
 };
 
 const colorLabels: Record<ColorMethod, string> = {
@@ -46,6 +51,15 @@ function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "حدث خطأ غير متوقع";
 }
 
+function summarizeDescription(text: string) {
+  const normalized = text.trim();
+  if (!normalized) {
+    return "مجسم مطبوع بعناية مع ضبط الخامة والتشطيب حسب نوع العمل.";
+  }
+
+  return normalized.length > 96 ? `${normalized.slice(0, 93)}...` : normalized;
+}
+
 function Tag({
   children,
   className = "",
@@ -54,9 +68,7 @@ function Tag({
   className?: string;
 }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold ${className}`}
-    >
+    <span className={`rounded border px-2 py-1 text-[11px] font-bold ${className}`}>
       {children}
     </span>
   );
@@ -128,11 +140,13 @@ async function jsonFetch<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
-  const { adminMode, adminPassword } = useAdmin();
   const [works, setWorks] = useState(initialWorks);
   const [activeFilter, setActiveFilter] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  const [adminMode, setAdminMode] = useState(false);
+  const [adminPassword, setAdminPassword] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingWork, setEditingWork] = useState<Work | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<UploadPreview[]>([]);
@@ -148,25 +162,30 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
     type: "ok" | "err";
   } | null>(null);
   const [lightbox, setLightbox] = useState<{ work: Work; index: number } | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<Work | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const materials = useMemo(() => {
     return Array.from(new Set(works.map((work) => work.material).filter(Boolean)));
   }, [works]);
 
-  const filteredWorks = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    return works
-      .filter((work) => activeFilter === "all" || work.material === activeFilter)
-      .filter((work) => {
-        if (!term) return true;
-        return (
-          work.name.toLowerCase().includes(term) ||
-          work.description.toLowerCase().includes(term)
-        );
-      });
-  }, [works, activeFilter, searchTerm]);
+  const filteredWorks =
+    activeFilter === "all"
+      ? works
+      : works.filter((work) => work.material === activeFilter);
+
+  useEffect(() => {
+    const storedPassword = sessionStorage.getItem("adminPw") || "";
+    if (!storedPassword) return;
+
+    verifyPassword(storedPassword).then((result) => {
+      if (result.ok) {
+        setAdminPassword(storedPassword);
+        setAdminMode(true);
+      } else {
+        sessionStorage.removeItem("adminPw");
+      }
+    });
+  }, []);
 
   useEffect(() => {
     fetch("/api/works")
@@ -183,29 +202,86 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
   }, [toast]);
 
   useEffect(() => {
-    document.body.style.overflow =
-      lightbox || showAddModal || confirmDelete ? "hidden" : "";
+    document.body.style.overflow = lightbox || showAddModal || showPasswordModal
+      ? "hidden"
+      : "";
+
     return () => {
       document.body.style.overflow = "";
     };
-  }, [lightbox, showAddModal, confirmDelete]);
+  }, [lightbox, showAddModal, showPasswordModal]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setLightbox(null);
         setShowAddModal(false);
-        setConfirmDelete(null);
+        setShowPasswordModal(false);
       }
+
       if (lightbox && event.key === "ArrowLeft") navigateLightbox(1);
       if (lightbox && event.key === "ArrowRight") navigateLightbox(-1);
     }
+
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   });
 
   function showToast(message: string, type: "ok" | "err" = "ok") {
     setToast({ message, type });
+  }
+
+  async function verifyPassword(password: string): Promise<VerifyResult> {
+    try {
+      const response = await fetch("/api/verify-password", {
+        method: "POST",
+        headers: {
+          "x-admin-password": password,
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        return {
+          ok: false,
+          error: data.error || "كلمة المرور غير صحيحة",
+        };
+      }
+
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        error: getErrorMessage(error),
+      };
+    }
+  }
+
+  async function submitPassword() {
+    if (!passwordInput.trim()) return;
+
+    const result = await verifyPassword(passwordInput);
+    if (!result.ok) {
+      showToast(result.error || "كلمة المرور غير صحيحة", "err");
+      return;
+    }
+
+    setAdminPassword(passwordInput.trim());
+    sessionStorage.setItem("adminPw", passwordInput.trim());
+    setPasswordInput("");
+    setShowPasswordModal(false);
+    setAdminMode(true);
+  }
+
+  function toggleAdmin() {
+    if (adminMode) {
+      setAdminMode(false);
+      setAdminPassword("");
+      sessionStorage.removeItem("adminPw");
+      return;
+    }
+
+    setShowPasswordModal(true);
   }
 
   const isEditing = Boolean(editingWork);
@@ -327,6 +403,9 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
   }
 
   async function deleteWork(work: Work) {
+    const confirmed = window.confirm(`حذف "${work.name}"؟`);
+    if (!confirmed) return;
+
     try {
       await jsonFetch<{ success: true }>("/api/works", {
         method: "DELETE",
@@ -341,8 +420,6 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
       showToast("تم الحذف", "ok");
     } catch (error) {
       showToast(getErrorMessage(error), "err");
-    } finally {
-      setConfirmDelete(null);
     }
   }
 
@@ -359,95 +436,106 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
   }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#08080c] text-[#f0ece4]">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[480px] bg-[radial-gradient(ellipse_at_top,rgba(251,146,60,0.13),transparent_60%)]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 [background-image:linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:radial-gradient(ellipse_at_top,black,transparent_75%)]"
-      />
-
+    <main className="theme-shell min-h-screen text-[var(--foreground)]">
       <Nav active="gallery" />
 
-      <header className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#fb923c] backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#fb923c]" />
-              3D Gallery
+      <section className="mx-auto max-w-6xl px-5 pb-8 pt-8 sm:pt-10 lg:pt-14">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="luxury-panel rounded-[30px] p-6 backdrop-blur sm:p-8">
+            <p className="mb-3 inline-flex rounded-full border border-[color:var(--gold)]/25 bg-[color:var(--gold)]/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[color:var(--gold-strong)]">
+              Curated Gallery
             </p>
-            <h1 className="text-3xl font-black leading-tight text-white sm:text-4xl">
+            <h1 className="font-display text-[clamp(2.8rem,10vw,4.8rem)] leading-[0.95] text-[var(--foreground)]">
               معرض الأعمال
             </h1>
-            <p className="mt-2 text-sm leading-7 text-white/50">
-              {loading ? "جاري التحديث..." : `${works.length} عمل مطبوع`}
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)] sm:text-base">
+              {loading
+                ? "جاري تحديث الأعمال..."
+                : "عرض أكثر هدوءاً وأناقة للمجسمات، مع فلترة بسيطة وتأكيد أكبر على الصورة والخامة."}
             </p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveFilter("all")}
+                className={`h-10 rounded-full border px-4 text-sm transition ${
+                  activeFilter === "all"
+                    ? "border-[color:var(--gold)]/55 bg-[color:var(--gold)]/10 text-[color:var(--gold)]"
+                    : "border-white/10 text-white/45 hover:border-white/25 hover:text-white"
+                }`}
+              >
+                الكل ({works.length})
+              </button>
+              {materials.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={() => setActiveFilter(item)}
+                  className={`h-10 rounded-full border px-4 text-sm transition ${
+                    activeFilter === item
+                      ? "border-[color:var(--gold)]/55 bg-[color:var(--gold)]/10 text-[color:var(--gold)]"
+                      : "border-white/10 text-white/45 hover:border-white/25 hover:text-white"
+                  }`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+
+            {adminMode ? (
+              <div className="mt-6">
+                <button
+                  type="button"
+                  onClick={openAddModal}
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] px-5 text-sm font-bold text-black shadow-lg shadow-black/25 transition hover:opacity-90"
+                >
+                  <Plus size={17} />
+                  إضافة عمل
+                </button>
+              </div>
+            ) : null}
           </div>
 
-          <div className="relative">
-            <Search
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/35"
-              size={16}
-            />
-            <input
-              type="search"
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="ابحث عن عمل..."
-              className="h-11 w-full rounded-2xl border border-white/10 bg-white/5 pe-10 ps-4 text-sm text-white outline-none backdrop-blur transition focus:border-[#fb923c]/40 focus:ring-4 focus:ring-[#fb923c]/15 sm:w-64"
-            />
+          <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
+            <div className="luxury-panel rounded-[24px] p-5">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]">الأعمال</p>
+              <div className="font-display mt-3 text-4xl text-[color:var(--gold)]">{works.length}</div>
+              <p className="mt-1 text-sm text-[var(--muted)]">إجمالي العناصر المعروضة</p>
+            </div>
+            <div className="luxury-panel rounded-[24px] p-5">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]">الخامات</p>
+              <div className="font-display mt-3 text-4xl text-[color:var(--gold)]">{materials.length || 1}</div>
+              <p className="mt-1 text-sm text-[var(--muted)]">أنواع مواد متاحة للفرز</p>
+            </div>
+            <div className="luxury-panel rounded-[24px] p-5">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]">الأعمال الملونة</p>
+              <div className="font-display mt-3 text-4xl text-[color:var(--gold)]">
+                {works.filter((work) => work.colorMethod !== "none").length}
+              </div>
+              <p className="mt-1 text-sm text-[var(--muted)]">تحتوي على طباعة ملونة أو تلوين يدوي</p>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setActiveFilter("all")}
-            className={`h-9 rounded-full border px-4 text-xs font-bold transition sm:text-sm ${
-              activeFilter === "all"
-                ? "border-[#fb923c]/55 bg-[#fb923c]/10 text-[#fb923c]"
-                : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/25 hover:text-white"
-            }`}
-          >
-            الكل ({works.length})
-          </button>
-          {materials.map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setActiveFilter(item)}
-              className={`h-9 rounded-full border px-4 text-xs font-bold transition sm:text-sm ${
-                activeFilter === item
-                  ? "border-[#fb923c]/55 bg-[#fb923c]/10 text-[#fb923c]"
-                  : "border-white/10 bg-white/[0.02] text-white/55 hover:border-white/25 hover:text-white"
-              }`}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-      </header>
-
-      <section className="mx-auto grid max-w-6xl grid-cols-1 gap-4 px-4 pb-28 sm:grid-cols-2 sm:px-6 lg:grid-cols-3 xl:grid-cols-4">
+      <section className="mx-auto grid max-w-6xl grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-5 px-5 pb-24 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
         {filteredWorks.length ? (
           filteredWorks.map((work, index) => (
             <article
               key={work.id}
-              className="group animate-fade-up overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-[#15151d] to-[#0e0e14] shadow-xl shadow-black/20 backdrop-blur transition hover:-translate-y-1 hover:border-[#fb923c]/40 hover:shadow-2xl hover:shadow-black/40"
+              className="animate-fade-up luxury-panel overflow-hidden rounded-[26px] transition hover:-translate-y-1 hover:border-[color:var(--gold)]/28 hover:shadow-2xl hover:shadow-black/35"
               style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}
             >
               <button
                 type="button"
-                className="relative block aspect-[4/3] w-full overflow-hidden bg-black/40 text-right"
+                className="group relative block h-60 w-full overflow-hidden bg-black/30 text-right sm:h-64"
                 onClick={() => work.images[0] && setLightbox({ work, index: 0 })}
               >
                 {work.images[0] ? (
                   <img
                     src={work.images[0]}
                     alt={work.name}
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                     loading="lazy"
                   />
                 ) : (
@@ -455,18 +543,15 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                     <Printer size={48} />
                   </div>
                 )}
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/70 to-transparent"
-                />
                 {work.images.length > 1 ? (
-                  <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
+                  <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-xs text-white">
                     <Images size={13} />
                     {work.images.length}
                   </span>
                 ) : null}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#09090b] via-[#09090b]/60 to-transparent" />
                 {adminMode ? (
-                  <span className="absolute right-3 top-3 flex gap-2">
+                  <span className="absolute right-3 top-3 flex gap-2 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
                     <span
                       role="button"
                       tabIndex={0}
@@ -482,9 +567,9 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                           openEditModal(work);
                         }
                       }}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/65 text-white shadow-lg shadow-black/30 backdrop-blur transition hover:border-[#fb923c]/60 hover:bg-[#fb923c]/20 hover:text-[#fb923c]"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-white backdrop-blur transition hover:border-[color:var(--gold)]/50 hover:text-[color:var(--gold)]"
                     >
-                      <Pencil size={14} />
+                      <Pencil size={15} />
                     </span>
                     <span
                       role="button"
@@ -493,51 +578,58 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                       aria-label="حذف"
                       onClick={(event) => {
                         event.stopPropagation();
-                        setConfirmDelete(work);
+                        deleteWork(work);
                       }}
                       onKeyDown={(event) => {
                         if (event.key === "Enter") {
                           event.stopPropagation();
-                          setConfirmDelete(work);
+                          deleteWork(work);
                         }
                       }}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300/30 bg-red-600/85 text-white shadow-lg shadow-black/30 backdrop-blur transition hover:bg-red-500"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300/20 bg-red-600/90 text-white backdrop-blur transition hover:bg-red-500"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={15} />
                     </span>
                   </span>
                 ) : null}
               </button>
 
-              <div className="p-4">
-                <h2 className="truncate text-base font-bold text-white">{work.name}</h2>
+              <div className="p-5">
+                <h2 className="font-display truncate text-2xl text-[var(--foreground)]">{work.name}</h2>
+                <p className="mt-2 min-h-12 text-sm leading-6 text-[var(--muted)]">
+                  {summarizeDescription(work.description)}
+                </p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Tag className="border-[#fb923c]/30 bg-[#fb923c]/10 text-[#fb923c]">
+                  <Tag className="border-[color:var(--gold)]/25 bg-[color:var(--gold)]/10 text-[color:var(--gold)]">
                     {work.material}
                   </Tag>
                   {work.printHours !== "—" ? (
                     <Tag className="border-cyan-300/25 bg-cyan-300/10 text-cyan-300">
-                      <Clock3 size={11} />
+                      <Clock3 className="ml-1 inline h-3 w-3" />
                       {work.printHours}h
                     </Tag>
                   ) : null}
                   <Tag className={colorClasses[work.colorMethod]}>
-                    <Palette size={11} />
+                    <Palette className="ml-1 inline h-3 w-3" />
                     {colorLabels[work.colorMethod]}
                   </Tag>
+                </div>
+                <div className="mt-4 flex items-center justify-between text-xs text-[var(--subtle)]">
+                  <span>عرض التفاصيل</span>
+                  <span>{work.addedAt ? new Date(work.addedAt).getFullYear() : ""}</span>
                 </div>
               </div>
             </article>
           ))
         ) : (
-          <div className="col-span-full py-20 text-center text-white/35 sm:py-24">
+          <div className="col-span-full rounded-[28px] border border-dashed border-white/10 bg-[rgba(17,16,14,0.82)] py-24 text-center text-[var(--subtle)]">
             <Printer className="mx-auto mb-4 h-12 w-12" />
             <p>لا توجد أعمال بعد</p>
             {adminMode ? (
               <button
                 type="button"
                 onClick={openAddModal}
-                className="mt-6 inline-flex h-11 items-center gap-2 rounded-2xl border border-[#fb923c]/45 bg-[#fb923c]/10 px-5 text-sm font-bold text-[#fb923c] transition hover:bg-[#fb923c]/15"
+                className="mt-6 inline-flex h-11 items-center gap-2 rounded-full border border-[color:var(--gold)]/45 bg-[color:var(--gold)]/10 px-5 text-sm font-bold text-[color:var(--gold)] transition hover:bg-[color:var(--gold)]/15"
               >
                 <Plus size={17} />
                 إضافة عمل
@@ -547,28 +639,89 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
         )}
       </section>
 
-      {adminMode ? (
+      <footer className="border-t border-white/10 px-5 py-7 text-center text-xs uppercase tracking-[0.18em] text-[var(--subtle)]">
+        © 2026 Majed Almasmoum · 3D Gallery
+      </footer>
+
+      <div className="fixed bottom-6 left-6 z-40 flex flex-col gap-3">
+        {adminMode ? (
+          <button
+            type="button"
+            title="إضافة عمل"
+            aria-label="إضافة عمل"
+            onClick={openAddModal}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] text-black shadow-xl shadow-black/35 transition hover:scale-105"
+          >
+            <Plus size={26} />
+          </button>
+        ) : null}
         <button
           type="button"
-          title="إضافة عمل"
-          aria-label="إضافة عمل"
-          onClick={openAddModal}
-          className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#fb923c] to-[#f59e0b] text-black shadow-2xl shadow-[#fb923c]/25 transition hover:scale-105 sm:h-16 sm:w-16"
+          title={adminMode ? "إيقاف وضع الإدارة" : "وضع الإدارة"}
+          aria-label={adminMode ? "إيقاف وضع الإدارة" : "وضع الإدارة"}
+          onClick={toggleAdmin}
+          className={`flex h-12 w-12 items-center justify-center rounded-full border shadow-xl shadow-black/35 transition hover:scale-105 ${
+            adminMode
+              ? "border-[color:var(--gold)]/45 bg-[color:var(--gold)]/10 text-[color:var(--gold)]"
+              : "border-white/10 bg-[#1d1d29] text-white/60"
+          }`}
         >
-          <Plus size={26} />
+          <Lock size={20} />
         </button>
+      </div>
+
+      {showPasswordModal ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowPasswordModal(false);
+          }}
+        >
+          <div className="w-full max-w-sm rounded-lg border border-white/10 bg-[#161620] p-6">
+            <KeyRound className="mb-4 h-8 w-8 text-[#fb923c]" />
+            <h2 className="text-xl font-black text-white">وضع الإدارة</h2>
+            <p className="mt-2 text-sm text-white/45">أدخل كلمة المرور للتعديل</p>
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(event) => setPasswordInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") submitPassword();
+              }}
+              className="mt-5 h-11 w-full rounded-lg border border-white/10 bg-white/5 px-4 text-white outline-none transition focus:border-[#fb923c]/50 focus:ring-4 focus:ring-[#fb923c]/10"
+              placeholder="كلمة المرور"
+              autoFocus
+            />
+            <div className="mt-5 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowPasswordModal(false)}
+                className="h-10 rounded-lg border border-white/10 px-5 text-sm text-white/60 transition hover:bg-white/10 hover:text-white"
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                onClick={submitPassword}
+                className="h-10 rounded-lg bg-gradient-to-l from-[#fb923c] to-[#f59e0b] px-5 text-sm font-bold text-black transition hover:opacity-90"
+              >
+                دخول
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
 
       {showAddModal ? (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/80 p-0 backdrop-blur sm:items-center sm:p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/75 p-4 backdrop-blur"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setShowAddModal(false);
           }}
         >
-          <div className="max-h-[94vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl border border-white/10 bg-[#13131b] p-5 shadow-2xl shadow-black/60 sm:rounded-3xl sm:p-7">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-white/10 bg-[#15151b] p-6 shadow-2xl shadow-black/50">
             <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-4">
-              <h2 className="text-lg font-black text-white sm:text-xl">
+              <h2 className="text-xl font-black text-white">
                 {isEditing ? "تعديل العمل" : "إضافة عمل جديد"}
               </h2>
               <button
@@ -583,7 +736,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
             </div>
 
             <div
-              className="mb-4 cursor-pointer rounded-2xl border-2 border-dashed border-white/10 bg-white/[0.02] p-6 text-center transition hover:border-[#fb923c]/55 hover:bg-[#fb923c]/5 sm:p-8"
+              className="mb-4 rounded-lg border-2 border-dashed border-white/10 bg-white/[0.02] p-8 text-center transition hover:border-[#fb923c]/50 hover:bg-[#fb923c]/5"
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
@@ -594,15 +747,11 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
               tabIndex={0}
             >
               <Upload className="mx-auto mb-3 h-9 w-9 text-[#fb923c]" />
-              <p className="font-bold text-white/80">
-                {isEditing
-                  ? "ارفع صورة بديلة أو اترك الصورة الحالية"
-                  : "اسحب صورة هنا أو انقر للرفع"}
+              <p className="font-bold text-white/75">
+                {isEditing ? "ارفع صورة بديلة أو اترك الصورة الحالية" : "اسحب صورة واحدة هنا أو انقر للرفع"}
               </p>
-              <p className="mt-1 text-xs text-white/40">
-                {isEditing
-                  ? "رفع صورة جديدة يستبدل الصورة الحالية"
-                  : "كل عمل ينحفظ كإضافة فردية"}
+              <p className="mt-1 text-xs text-white/35">
+                {isEditing ? "رفع صورة جديدة يستبدل الصورة الحالية" : "كل عمل ينحفظ كإضافة فردية"}
               </p>
               <input
                 ref={fileInputRef}
@@ -618,7 +767,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
             {selectedFiles.length || editingWork?.images[0] ? (
               <div className="mb-5 flex flex-wrap gap-2">
                 {selectedFiles.length === 0 && editingWork?.images[0] ? (
-                  <div className="relative h-20 w-20 overflow-hidden rounded-xl border border-[#fb923c]/40">
+                  <div className="relative h-20 w-20 overflow-hidden rounded-lg border border-[#fb923c]/30">
                     <img
                       src={editingWork.images[0]}
                       alt={editingWork.name}
@@ -632,7 +781,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                 {selectedFiles.map((file, index) => (
                   <div
                     key={file.dataUrl}
-                    className="relative h-20 w-20 overflow-hidden rounded-xl border border-white/10"
+                    className="relative h-20 w-20 overflow-hidden rounded-lg border border-white/10"
                   >
                     <img src={file.dataUrl} alt="" className="h-full w-full object-cover" />
                     <button
@@ -655,36 +804,34 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-xs font-bold text-white/45">
+                <span className="mb-2 block text-xs font-bold text-white/40">
                   اسم المجسم *
                 </span>
                 <input
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition focus:border-[#fb923c]/55 focus:ring-4 focus:ring-[#fb923c]/15"
+                  className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-4 text-white outline-none transition focus:border-[#fb923c]/50 focus:ring-4 focus:ring-[#fb923c]/10"
                   placeholder="مثال: Dragon Skull"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-xs font-bold text-white/45">
+                <span className="mb-2 block text-xs font-bold text-white/40">
                   المادة المطبوعة
                 </span>
                 <select
                   value={material}
                   onChange={(event) => setMaterial(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-white/10 bg-[#21212d] px-4 text-white outline-none transition focus:border-[#fb923c]/55 focus:ring-4 focus:ring-[#fb923c]/15"
+                  className="h-11 w-full rounded-lg border border-white/10 bg-[#21212d] px-4 text-white outline-none transition focus:border-[#fb923c]/50 focus:ring-4 focus:ring-[#fb923c]/10"
                 >
-                  {["PLA", "PETG", "ABS", "ASA", "TPU", "Resin", "Nylon", "أخرى"].map(
-                    (item) => (
-                      <option key={item}>{item}</option>
-                    ),
-                  )}
+                  {["PLA", "PETG", "ABS", "ASA", "TPU", "Resin", "Nylon", "أخرى"].map((item) => (
+                    <option key={item}>{item}</option>
+                  ))}
                 </select>
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-xs font-bold text-white/45">
+                <span className="mb-2 block text-xs font-bold text-white/40">
                   مدة الطباعة (ساعات)
                 </span>
                 <input
@@ -693,13 +840,13 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                   step="0.5"
                   value={printHours}
                   onChange={(event) => setPrintHours(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-white/10 bg-white/5 px-4 text-white outline-none transition focus:border-[#fb923c]/55 focus:ring-4 focus:ring-[#fb923c]/15"
+                  className="h-11 w-full rounded-lg border border-white/10 bg-white/5 px-4 text-white outline-none transition focus:border-[#fb923c]/50 focus:ring-4 focus:ring-[#fb923c]/10"
                   placeholder="6.5"
                 />
               </label>
 
               <div>
-                <span className="mb-2 block text-xs font-bold text-white/45">
+                <span className="mb-2 block text-xs font-bold text-white/40">
                   طريقة التلوين
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -708,10 +855,10 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                       key={item}
                       type="button"
                       onClick={() => setColorMethod(item)}
-                      className={`h-11 rounded-xl border px-3 text-sm transition ${
+                      className={`h-11 rounded-lg border px-3 text-sm transition ${
                         colorMethod === item
                           ? "border-[#fb923c]/55 bg-[#fb923c]/10 text-[#fb923c]"
-                          : "border-white/10 bg-white/5 text-white/55 hover:text-white"
+                          : "border-white/10 bg-white/5 text-white/50 hover:text-white"
                       }`}
                     >
                       {colorLabels[item]}
@@ -721,14 +868,14 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
               </div>
 
               <label className="block sm:col-span-2">
-                <span className="mb-2 block text-xs font-bold text-white/45">
+                <span className="mb-2 block text-xs font-bold text-white/40">
                   وصف (اختياري)
                 </span>
                 <textarea
                   value={description}
                   onChange={(event) => setDescription(event.target.value)}
                   rows={3}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-[#fb923c]/55 focus:ring-4 focus:ring-[#fb923c]/15"
+                  className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-[#fb923c]/50 focus:ring-4 focus:ring-[#fb923c]/10"
                   placeholder="تفاصيل إضافية عن المجسم..."
                 />
               </label>
@@ -750,7 +897,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
-                className="h-11 rounded-xl border border-white/10 px-5 text-sm text-white/65 transition hover:bg-white/10 hover:text-white"
+                className="h-11 rounded-lg border border-white/10 px-5 text-sm text-white/60 transition hover:bg-white/10 hover:text-white"
               >
                 إلغاء
               </button>
@@ -758,7 +905,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                 type="button"
                 onClick={saveWork}
                 disabled={saving}
-                className="inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-l from-[#fb923c] to-[#f59e0b] px-5 text-sm font-bold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
+                className="inline-flex h-11 items-center gap-2 rounded-lg bg-gradient-to-l from-[#fb923c] to-[#f59e0b] px-5 text-sm font-bold text-black transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-45"
               >
                 {saving ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -774,45 +921,9 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
         </div>
       ) : null}
 
-      {confirmDelete ? (
-        <div
-          className="fixed inset-0 z-[55] flex items-center justify-center bg-black/80 p-4 backdrop-blur"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setConfirmDelete(null);
-          }}
-        >
-          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#13131b] p-6 shadow-2xl shadow-black/60">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-300/30 bg-red-600/15 text-red-300">
-              <Trash2 size={20} />
-            </div>
-            <h2 className="mt-4 text-lg font-black text-white">حذف العمل</h2>
-            <p className="mt-2 text-sm leading-7 text-white/55">
-              هل أنت متأكد من حذف &ldquo;{confirmDelete.name}&rdquo;؟ لا يمكن التراجع عن هذا الإجراء.
-            </p>
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmDelete(null)}
-                className="h-10 rounded-xl border border-white/10 px-4 text-sm text-white/65 transition hover:bg-white/10 hover:text-white"
-              >
-                إلغاء
-              </button>
-              <button
-                type="button"
-                onClick={() => deleteWork(confirmDelete)}
-                className="inline-flex h-10 items-center gap-2 rounded-xl bg-red-600 px-4 text-sm font-bold text-white transition hover:bg-red-500"
-              >
-                <Trash2 size={14} />
-                حذف
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
       {lightbox ? (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/95 p-4"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) setLightbox(null);
           }}
@@ -822,7 +933,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
             title="إغلاق"
             aria-label="إغلاق"
             onClick={() => setLightbox(null)}
-            className="absolute right-4 top-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20 sm:right-5 sm:top-5"
+            className="absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
           >
             <X size={20} />
           </button>
@@ -834,7 +945,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                 title="الصورة السابقة"
                 aria-label="الصورة السابقة"
                 onClick={() => navigateLightbox(-1)}
-                className="absolute right-3 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20 sm:right-5"
+                className="absolute right-5 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
               >
                 <ChevronRight size={24} />
               </button>
@@ -843,22 +954,20 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                 title="الصورة التالية"
                 aria-label="الصورة التالية"
                 onClick={() => navigateLightbox(1)}
-                className="absolute left-3 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur transition hover:bg-white/20 sm:left-5"
+                className="absolute left-5 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
               >
                 <ChevronLeft size={24} />
               </button>
             </>
           ) : null}
 
-          <div className="w-full max-w-4xl px-2 text-center sm:px-14">
+          <div className="w-full max-w-4xl px-14 text-center">
             <img
               src={lightbox.work.images[lightbox.index]}
               alt={lightbox.work.name}
-              className="mx-auto max-h-[68vh] max-w-full rounded-2xl object-contain shadow-2xl shadow-black/60"
+              className="mx-auto max-h-[72vh] max-w-full rounded-lg object-contain"
             />
-            <h2 className="mt-5 text-lg font-black text-white sm:text-xl">
-              {lightbox.work.name}
-            </h2>
+            <h2 className="mt-5 text-xl font-black text-white">{lightbox.work.name}</h2>
             {adminMode ? (
               <div className="mt-4 flex justify-center gap-2">
                 <button
@@ -867,26 +976,26 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
                     openEditModal(lightbox.work);
                     setLightbox(null);
                   }}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-bold text-white transition hover:border-[#fb923c]/45 hover:text-[#fb923c]"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/10 px-4 text-sm font-bold text-white transition hover:border-[#fb923c]/40 hover:text-[#fb923c]"
                 >
-                  <Pencil size={14} />
+                  <Pencil size={15} />
                   تعديل
                 </button>
                 <button
                   type="button"
                   onClick={() => {
-                    setConfirmDelete(lightbox.work);
+                    deleteWork(lightbox.work);
                     setLightbox(null);
                   }}
-                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-red-300/25 bg-red-600/85 px-4 text-sm font-bold text-white transition hover:bg-red-500"
+                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-red-300/20 bg-red-600/90 px-4 text-sm font-bold text-white transition hover:bg-red-500"
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={15} />
                   حذف
                 </button>
               </div>
             ) : null}
             <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <Tag className="border-[#fb923c]/30 bg-[#fb923c]/10 text-[#fb923c]">
+              <Tag className="border-[#fb923c]/25 bg-[#fb923c]/10 text-[#fb923c]">
                 {lightbox.work.material}
               </Tag>
               {lightbox.work.printHours !== "—" ? (
@@ -909,7 +1018,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
 
       {toast ? (
         <div
-          className={`fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 rounded-2xl border bg-[#1a1a24]/95 px-5 py-3 text-sm shadow-2xl shadow-black/40 backdrop-blur ${
+          className={`fixed bottom-6 right-1/2 z-[70] translate-x-1/2 rounded-lg border bg-[#1e1e2e] px-5 py-3 text-sm shadow-xl shadow-black/40 ${
             toast.type === "ok"
               ? "border-emerald-300/35 text-emerald-300"
               : "border-red-300/35 text-red-300"
