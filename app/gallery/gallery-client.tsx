@@ -99,13 +99,36 @@ async function readFileAsDataUrl(file: File): Promise<string> {
   });
 }
 
+async function convertHeicPreview(file: File): Promise<string> {
+  const mod = await import("heic2any");
+  const heic2any = mod.default as (options: {
+    blob: Blob;
+    toType: string;
+    quality?: number;
+  }) => Promise<Blob | Blob[]>;
+
+  const converted = await heic2any({
+    blob: file,
+    toType: "image/jpeg",
+    quality: 0.9,
+  });
+
+  const blob = Array.isArray(converted) ? converted[0] : converted;
+  return readFileAsDataUrl(
+    new File([blob], file.name.replace(/\.(heic|heif)$/i, ".jpg"), {
+      type: "image/jpeg",
+    }),
+  );
+}
+
 async function resizeImage(file: File): Promise<UploadPreview> {
   if (!canRasterizeInBrowser(file)) {
-    const dataUrl = await readFileAsDataUrl(file);
+    const originalDataUrl = await readFileAsDataUrl(file);
+    const previewDataUrl = await convertHeicPreview(file);
     return {
       file,
-      base64: dataUrl.split(",")[1] || "",
-      dataUrl,
+      base64: originalDataUrl.split(",")[1] || "",
+      dataUrl: previewDataUrl,
       contentType: file.type || "image/heic",
     };
   }
