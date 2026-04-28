@@ -90,24 +90,27 @@ function canRasterizeInBrowser(file: File) {
   return !["heic", "heif"].includes(extension);
 }
 
-async function convertHeicToJpeg(file: File): Promise<File> {
-  const { default: heic2any } = await import("heic2any");
-  const converted = await heic2any({
-    blob: file,
-    toType: "image/jpeg",
-    quality: 0.9,
+async function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
   });
-  const blob = Array.isArray(converted) ? converted[0] : converted;
-
-  return new File(
-    [blob as Blob],
-    file.name.replace(/\.(heic|heif)$/i, ".jpg"),
-    { type: "image/jpeg" },
-  );
 }
 
 async function resizeImage(file: File): Promise<UploadPreview> {
-  const sourceFile = canRasterizeInBrowser(file) ? file : await convertHeicToJpeg(file);
+  if (!canRasterizeInBrowser(file)) {
+    const dataUrl = await readFileAsDataUrl(file);
+    return {
+      file,
+      base64: dataUrl.split(",")[1] || "",
+      dataUrl,
+      contentType: file.type || "image/heic",
+    };
+  }
+
+  const sourceFile = file;
 
   return new Promise((resolve, reject) => {
     const image = new Image();

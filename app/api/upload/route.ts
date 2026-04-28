@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import convert from "heic-convert";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { worksBucket, worksStoragePrefix } from "@/lib/supabase/config";
 
@@ -9,6 +10,17 @@ function isAuthorized(request: NextRequest) {
 
 function safeFilename(filename: string) {
   return filename.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
+
+function isHeicFile(filename: string, contentType?: string) {
+  const lower = filename.toLowerCase();
+  const type = (contentType || "").toLowerCase();
+  return (
+    lower.endsWith(".heic") ||
+    lower.endsWith(".heif") ||
+    type.includes("heic") ||
+    type.includes("heif")
+  );
 }
 
 export async function POST(request: NextRequest) {
@@ -39,8 +51,21 @@ export async function POST(request: NextRequest) {
     }
 
     const base64 = body.content.replace(/^data:[^;]+;base64,/, "");
-    const buffer = Buffer.from(base64, "base64");
-    const filename = `${Date.now()}-${safeFilename(body.filename)}`;
+    let buffer = Buffer.from(base64, "base64");
+    let filename = `${Date.now()}-${safeFilename(body.filename)}`;
+    let contentType = body.contentType || "image/jpeg";
+
+    if (isHeicFile(body.filename, body.contentType)) {
+      const converted = await convert({
+        buffer,
+        format: "JPEG",
+        quality: 0.9,
+      });
+      buffer = Buffer.from(converted);
+      filename = filename.replace(/\.(heic|heif)$/i, ".jpg");
+      contentType = "image/jpeg";
+    }
+
     const storagePath = worksStoragePrefix
       ? `${worksStoragePrefix.replace(/^\/+|\/+$/g, "")}/${filename}`
       : filename;
@@ -48,7 +73,7 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase.storage
       .from(worksBucket)
       .upload(storagePath, buffer, {
-        contentType: body.contentType || "image/jpeg",
+        contentType,
         upsert: false,
       });
 
