@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body { background: #0D0D0D; padding: 28px; display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+.card {
+  width: 200px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-1);
+  transition: box-shadow 250ms ease, border-color 250ms ease;
+  cursor: pointer;
+}
+.card:hover { box-shadow: var(--shadow-2); border-color: var(--border-highlight); }
+.card-img {
+  width: 100%; aspect-ratio: 4/3;
+  background: var(--bg-elevated);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.card-img svg { opacity: 0.25; }
+.card-body { padding: 14px 16px; }
+.card-meta { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-tertiary); margin-bottom: 6px; }
+.card-title { font-family: var(--font-display); font-size: 17px; font-weight: 400; color: var(--fg-primary); line-height: 1.25; margin-bottom: 6px; }
+.card-sub { font-family: var(--font-body); font-size: 12px; color: var(--fg-secondary); }
+.card-footer { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.card-price { font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--gold); }
+.card-edition { font-family: var(--font-mono); font-size: 10px; color: var(--fg-tertiary); }
+
+/* Featured card */
+.card-featured { box-shadow: var(--shadow-gold); border-color: var(--gold-muted); }
+.card-featured .card-img { background: #1A1510; }
+
+/* Horizontal card */
+.card-h { width: 360px; display: flex; flex-direction: row; }
+.card-h .card-img { width: 110px; aspect-ratio: unset; flex-shrink: 0; }
+.card-h .card-body { flex: 1; }
+</style></head>
+<body>
+<!-- Default artwork card -->
+<div class="card">
+  <div class="card-img">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" stroke-width="1"><rect x="3" y="3" width="18" height="18"/><path d="M3 9l4-4 4 4 4-6 4 6"/></svg>
+  </div>
+  <div class="card-body">
+    <div class="card-meta">Sculpture · 2024</div>
+    <div class="card-title">Untitled Form No. 7</div>
+    <div class="card-sub">Resin composite · 42cm</div>
+  </div>
+  <div class="card-footer">
+    <div class="card-price">SAR 4,200</div>
+    <div class="card-edition">Ed. 3/12</div>
+  </div>
+</div>
+
+<!-- Featured card -->
+<div class="card card-featured">
+  <div class="card-img">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+  </div>
+  <div class="card-body">
+    <div class="card-meta" style="color:var(--gold)">Featured · Commission</div>
+    <div class="card-title">Echoes in Space</div>
+    <div class="card-sub">Bronze-finish resin · 68cm</div>
+  </div>
+  <div class="card-footer">
+    <div class="card-price">SAR 12,500</div>
+    <div class="card-edition">Ed. 1/5</div>
+  </div>
+</div>
+
+<!-- Horizontal card -->
+<div class="card card-h">
+  <div class="card-img">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" stroke-width="1"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+  </div>
+  <div class="card-body">
+    <div class="card-meta">New Commission</div>
+    <div class="card-title">Custom Portrait</div>
+    <div class="card-sub">Inquire for pricing</div>
+  </div>
+</div>
+</body></html>

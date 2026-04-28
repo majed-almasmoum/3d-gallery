@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body { background: var(--bg-void); padding: 36px 28px; display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-end; }
+.shadow-card { width: 140px; height: 100px; background: var(--bg-surface); border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 12px; }
+.shadow-label { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-tertiary); margin-top: 16px; text-align: center; }
+.shadow-desc { font-family: var(--font-mono); font-size: 9px; color: var(--fg-tertiary); text-align: center; margin-top: 4px; }
+</style></head>
+<body>
+<div>
+  <div class="shadow-card" style="box-shadow:0 2px 8px rgba(0,0,0,0.40)"></div>
+  <div class="shadow-label">Elevation 1</div>
+  <div class="shadow-desc">Cards, default</div>
+</div>
+<div>
+  <div class="shadow-card" style="box-shadow:0 8px 32px rgba(0,0,0,0.60)"></div>
+  <div class="shadow-label">Elevation 2</div>
+  <div class="shadow-desc">Hover, drawers</div>
+</div>
+<div>
+  <div class="shadow-card" style="box-shadow:0 16px 64px rgba(0,0,0,0.80)"></div>
+  <div class="shadow-label">Elevation 3</div>
+  <div class="shadow-desc">Modals, dialogs</div>
+</div>
+<div>
+  <div class="shadow-card" style="box-shadow:0 0 24px rgba(201,169,110,0.18); border-color:#9A7A4A"></div>
+  <div class="shadow-label">Gold Glow</div>
+  <div class="shadow-desc">Featured, highlighted</div>
+</div>
+</body></html>

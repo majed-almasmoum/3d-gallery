@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body { background: var(--bg-void); padding: 32px 28px; display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+.group { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; flex-basis: 100%; }
+.group-label { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-tertiary); flex-basis: 100%; margin-bottom: 4px; }
+button {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 250ms cubic-bezier(0.4,0,0.2,1);
+  padding: 12px 28px;
+}
+.btn-primary { background: var(--crimson); color: var(--fg-primary); }
+.btn-primary:hover { background: var(--crimson-light); }
+.btn-primary:active { transform: scale(0.97); background: var(--crimson-dark); }
+
+.btn-gold { background: transparent; color: var(--gold); border: 1px solid var(--gold-muted); }
+.btn-gold:hover { background: var(--gold-subtle); border-color: var(--gold); }
+
+.btn-ghost { background: transparent; color: var(--fg-secondary); border: 1px solid var(--border); }
+.btn-ghost:hover { color: var(--fg-primary); border-color: var(--fg-secondary); }
+
+.btn-text { background: transparent; color: var(--fg-secondary); padding: 12px 4px; border-bottom: 1px solid transparent; }
+.btn-text:hover { color: var(--fg-primary); border-bottom-color: var(--gold-muted); }
+
+.btn-sm { font-size: 11px; padding: 8px 18px; }
+.btn-icon { padding: 12px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid var(--border); color: var(--fg-secondary); }
+.btn-icon:hover { border-color: var(--gold-muted); color: var(--gold); }
+
+[disabled] { opacity: 0.35; cursor: not-allowed; }
+</style></head>
+<body>
+<div class="group">
+  <div class="group-label">Primary</div>
+  <button class="btn-primary">Commission Now</button>
+  <button class="btn-primary btn-sm">Inquire</button>
+  <button class="btn-primary" disabled>Sold Out</button>
+</div>
+<div class="group">
+  <div class="group-label">Gold Outline</div>
+  <button class="btn-gold">View Collection</button>
+  <button class="btn-gold btn-sm">See All Works</button>
+</div>
+<div class="group">
+  <div class="group-label">Ghost & Text</div>
+  <button class="btn-ghost">Learn More</button>
+  <button class="btn-text">View Details →</button>
+</div>
+<div class="group">
+  <div class="group-label">Icon Button</div>
+  <button class="btn-icon">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+  <button class="btn-icon">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+  </button>
+</div>
+</body></html>

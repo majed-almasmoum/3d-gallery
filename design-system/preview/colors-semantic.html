@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body { background: var(--bg-void); padding: 24px; display: flex; flex-wrap: wrap; gap: 12px; }
+.swatch { width: 120px; }
+.swatch-block { height: 72px; border: 1px solid rgba(255,255,255,0.06); }
+.swatch-label { font-family: var(--font-body); font-size: 11px; color: var(--fg-secondary); margin-top: 6px; letter-spacing: 0.04em; }
+.swatch-hex { font-family: var(--font-mono); font-size: 10px; color: var(--fg-tertiary); }
+.group-label { width: 100%; font-family: var(--font-body); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fg-tertiary); padding-bottom: 8px; border-bottom: 1px solid var(--border); margin-top: 4px; }
+</style></head>
+<body>
+<div class="group-label" style="flex-basis:100%">Backgrounds</div>
+<div class="swatch"><div class="swatch-block" style="background:#0A0A0A; border:1px solid #2A2724"></div><div class="swatch-label">bg-void</div><div class="swatch-hex">#0A0A0A</div></div>
+<div class="swatch"><div class="swatch-block" style="background:#141414; border:1px solid #2A2724"></div><div class="swatch-label">bg-surface</div><div class="swatch-hex">#141414</div></div>
+<div class="swatch"><div class="swatch-block" style="background:#1E1C1C; border:1px solid #2A2724"></div><div class="swatch-label">bg-elevated</div><div class="swatch-hex">#1E1C1C</div></div>
+
+<div class="group-label" style="flex-basis:100%">Foregrounds</div>
+<div class="swatch"><div class="swatch-block" style="background:#F5F0E8"></div><div class="swatch-label">fg-primary</div><div class="swatch-hex">#F5F0E8</div></div>
+<div class="swatch"><div class="swatch-block" style="background:#A09A90"></div><div class="swatch-label">fg-secondary</div><div class="swatch-hex">#A09A90</div></div>
+<div class="swatch"><div class="swatch-block" style="background:#5A5450"></div><div class="swatch-label">fg-tertiary</div><div class="swatch-hex">#5A5450</div></div>
+
+<div class="group-label" style="flex-basis:100%">Borders</div>
+<div class="swatch"><div class="swatch-block" style="background:#1E1C1C; border:1px solid #1E1C1C"></div><div class="swatch-label">border-subtle</div><div class="swatch-hex">#1E1C1C</div></div>
+<div class="swatch"><div class="swatch-block" style="background:#2A2724; border:1px solid #2A2724"></div><div class="swatch-label">border</div><div class="swatch-hex">#2A2724</div></div>
+<div class="swatch"><div class="swatch-block" style="background:#9A7A4A; border:1px solid #9A7A4A"></div><div class="swatch-label">border-highlight</div><div class="swatch-hex">#9A7A4A</div></div>
+</body></html>

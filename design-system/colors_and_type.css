@@ -1,0 +1,227 @@
+/* ============================================================
+   MAJED ALMASMOUM — Design System
+   معرض ماجد المصموم
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500;600&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Tajawal:wght@300;400;500;600&display=swap');
+
+/* ── BASE RESET ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── COLOR TOKENS ─────────────────────────────────────────── */
+:root {
+  /* Brand */
+  --crimson:           #8C1A1A;
+  --crimson-light:     #B22222;
+  --crimson-dark:      #6A1010;
+  --crimson-subtle:    rgba(140, 26, 26, 0.12);
+
+  --gold:              #C9A96E;
+  --gold-light:        #DFC08A;
+  --gold-muted:        #9A7A4A;
+  --gold-subtle:       rgba(201, 169, 110, 0.12);
+
+  /* Backgrounds */
+  --bg-void:           #0A0A0A;
+  --bg-surface:        #141414;
+  --bg-elevated:       #1E1C1C;
+  --bg-overlay:        rgba(10, 10, 10, 0.80);
+
+  /* Foregrounds */
+  --fg-primary:        #F5F0E8;
+  --fg-secondary:      #A09A90;
+  --fg-tertiary:       #5A5450;
+  --fg-inverse:        #0A0A0A;
+
+  /* Borders */
+  --border:            #2A2724;
+  --border-highlight:  #9A7A4A;
+  --border-subtle:     #1E1C1C;
+
+  /* Semantic */
+  --color-error:       #C0392B;
+  --color-success:     #4A8C6A;
+  --color-warning:     #C9A96E;
+  --color-info:        #4A7A9B;
+
+  /* ── TYPOGRAPHY TOKENS ──────────────────────────────────── */
+
+  /* Font families */
+  --font-display:      'Cormorant Garamond', Georgia, serif;
+  --font-body:         'DM Sans', system-ui, sans-serif;
+  --font-arabic-display: 'Amiri', serif;
+  --font-arabic-body:  'Tajawal', sans-serif;
+  --font-mono:         'Courier New', monospace;
+
+  /* Font weights */
+  --weight-light:      300;
+  --weight-regular:    400;
+  --weight-medium:     500;
+  --weight-semibold:   600;
+  --weight-bold:       700;
+
+  /* Type scale */
+  --text-xs:           0.75rem;    /* 12px */
+  --text-sm:           0.875rem;   /* 14px */
+  --text-base:         1rem;       /* 16px */
+  --text-md:           1.25rem;    /* 20px */
+  --text-lg:           1.5rem;     /* 24px */
+  --text-xl:           2rem;       /* 32px */
+  --text-2xl:          3rem;       /* 48px */
+  --text-3xl:          4rem;       /* 64px */
+  --text-4xl:          6rem;       /* 96px */
+
+  /* Line heights */
+  --leading-tight:     1.1;
+  --leading-snug:      1.25;
+  --leading-normal:    1.5;
+  --leading-relaxed:   1.75;
+
+  /* Letter spacing */
+  --tracking-tight:    -0.02em;
+  --tracking-normal:   0em;
+  --tracking-wide:     0.08em;
+  --tracking-wider:    0.16em;
+  --tracking-widest:   0.24em;
+
+  /* ── SPACING ────────────────────────────────────────────── */
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-16:  64px;
+  --space-20:  80px;
+  --space-24:  96px;
+  --space-32:  128px;
+
+  /* ── RADII ──────────────────────────────────────────────── */
+  --radius-none:    0px;
+  --radius-sm:      2px;
+  --radius-full:    9999px;
+
+  /* ── SHADOWS / ELEVATION ─────────────────────────────────── */
+  --shadow-1:   0 2px 8px  rgba(0, 0, 0, 0.40);
+  --shadow-2:   0 8px 32px rgba(0, 0, 0, 0.60);
+  --shadow-3:   0 16px 64px rgba(0, 0, 0, 0.80);
+  --shadow-gold: 0 0 24px rgba(201, 169, 110, 0.18);
+
+  /* ── TRANSITIONS ─────────────────────────────────────────── */
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast:  150ms;
+  --duration-base:  250ms;
+  --duration-slow:  500ms;
+
+  /* ── LAYOUT ──────────────────────────────────────────────── */
+  --max-width:   1200px;
+  --gutter:      24px;
+  --nav-height:  72px;
+}
+
+/* ── SEMANTIC TYPE STYLES ─────────────────────────────────── */
+
+body {
+  background-color: var(--bg-void);
+  color: var(--fg-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Arabic body override */
+:lang(ar), [dir="rtl"] {
+  font-family: var(--font-arabic-body);
+  direction: rtl;
+  text-align: right;
+}
+
+h1, .h1 {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-light);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-primary);
+}
+
+h2, .h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-light);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg-primary);
+}
+
+h3, .h3 {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-snug);
+  color: var(--fg-primary);
+}
+
+h4, .h4 {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+  color: var(--fg-primary);
+}
+
+p, .body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-relaxed);
+  color: var(--fg-primary);
+}
+
+.body-sm {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--fg-secondary);
+}
+
+.label {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--fg-secondary);
+}
+
+.caption {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--fg-tertiary);
+  line-height: var(--leading-normal);
+}
+
+/* Arabic headings */
+:lang(ar) h1, :lang(ar) .h1,
+:lang(ar) h2, :lang(ar) .h2,
+:lang(ar) h3, :lang(ar) .h3 {
+  font-family: var(--font-arabic-display);
+  font-weight: var(--weight-light);
+  letter-spacing: 0;
+}
+
+/* Gold accent text */
+.text-gold  { color: var(--gold); }
+.text-crimson { color: var(--crimson-light); }
+.text-muted { color: var(--fg-secondary); }
+
+/* Divider */
+hr, .divider {
+  border: none;
+  border-top: 1px solid var(--border-highlight);
+  opacity: 0.4;
+  margin: var(--space-8) 0;
+}

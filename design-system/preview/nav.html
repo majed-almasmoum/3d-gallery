@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body { background: var(--bg-void); padding: 0; margin: 0; }
+nav {
+  height: 72px;
+  background: rgba(10,10,10,0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 40px;
+  gap: 48px;
+}
+.nav-logo {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--fg-primary);
+  margin-right: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.nav-monogram {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--crimson-light);
+  line-height: 1;
+}
+.nav-links { display: flex; gap: 36px; align-items: center; }
+.nav-link {
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-secondary);
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+.nav-link:hover, .nav-link.active { color: var(--fg-primary); }
+.nav-link.active { border-bottom: 1px solid var(--gold-muted); padding-bottom: 2px; }
+.nav-cta {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-primary);
+  background: var(--crimson);
+  border: none;
+  padding: 9px 20px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 200ms ease;
+}
+.nav-cta:hover { background: var(--crimson-light); }
+.lang-toggle {
+  font-family: var(--font-body);
+  font-size: 11px;
+  color: var(--fg-tertiary);
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: color 200ms ease;
+}
+.lang-toggle:hover { color: var(--gold); }
+</style></head>
+<body>
+<nav>
+  <a class="nav-logo" href="#">
+    <span class="nav-monogram">M</span>
+    MAJED ALMASMOUM
+  </a>
+  <div class="nav-links">
+    <a class="nav-link active" href="#">Gallery</a>
+    <a class="nav-link" href="#">About</a>
+    <a class="nav-link" href="#">Process</a>
+    <a class="nav-link" href="#">Contact</a>
+  </div>
+  <span class="lang-toggle">AR | EN</span>
+  <a class="nav-cta" href="#">Commission</a>
+</nav>
+</body></html>

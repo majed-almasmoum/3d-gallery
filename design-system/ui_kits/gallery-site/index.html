@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Majed Almasmoum — Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="Header.jsx"></script>
+<script type="text/babel" src="GalleryGrid.jsx"></script>
+<script type="text/babel" src="ArtworkDetail.jsx"></script>
+<script type="text/babel" src="CommissionForm.jsx"></script>
+<script type="text/babel" src="Footer.jsx"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #0A0A0A;
+    color: #F5F0E8;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  #root { min-height: 100vh; }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.025;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0A0A0A; }
+  ::-webkit-scrollbar-thumb { background: #2A2724; }
+
+  .page-container { position: relative; z-index: 1; }
+  .content-wrap { max-width: 1200px; margin: 0 auto; padding: 0 48px; }
+
+  input, textarea, select, button { font-family: inherit; }
+  input:focus, textarea:focus, select:focus { border-color: #9A7A4A !important; }
+  button:hover { opacity: 0.9; }
+
+  .fade-in { animation: fadeIn 0.5s ease both; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+/* ── Hero Section ──────────────────────────────────── */
+const Hero = ({ lang, onExplore }) => {
+  const isRtl = lang === 'ar';
+  return (
+    <section style={{ ...heroSt.wrap, direction: isRtl ? 'rtl' : 'ltr' }}>
+      {/* Background geometric accent */}
+      <div style={heroSt.accent}></div>
+      <div style={heroSt.inner}>
+        <div style={heroSt.eyebrow}>
+          {isRtl ? 'فن الطباعة ثلاثية الأبعاد' : '3D Printed Fine Art'}
+        </div>
+        <h1 style={{ ...heroSt.headline, fontFamily: isRtl ? "'Amiri', serif" : "'Cormorant Garamond', serif" }}>
+          {isRtl
+            ? <>معرض<br /><em style={{ color: '#C9A96E', fontStyle: 'italic' }}>ماجد المصموم</em></>
+            : <>Majed<br /><em style={{ color: '#C9A96E', fontStyle: 'italic' }}>Almasmoum</em></>
+          }
+        </h1>
+        <p style={{ ...heroSt.sub, fontFamily: isRtl ? "'Tajawal', sans-serif" : "'DM Sans', sans-serif" }}>
+          {isRtl
+            ? 'طباعة تحوّل المادة إلى فن. أعمال ثلاثية الأبعاد تُصنع بدقة متناهية.'
+            : 'Printing that transforms matter into art. Three-dimensional works of uncompromising precision.'}
+        </p>
+        <div style={heroSt.actions}>
+          <button onClick={onExplore} style={heroSt.btnPrimary}>
+            {isRtl ? 'استكشف المعرض' : 'Explore Gallery'}
+          </button>
+          <button style={heroSt.btnGhost}>
+            {isRtl ? 'طلب عمل' : 'Commission a Piece'}
+          </button>
+        </div>
+        <div style={heroSt.scroll}>
+          <div style={heroSt.scrollLine}></div>
+          <span style={heroSt.scrollLabel}>{isRtl ? 'مرر للأسفل' : 'Scroll'}</span>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const heroSt = {
+  wrap: { minHeight: '100vh', display: 'flex', alignItems: 'center', position: 'relative', overflow: 'hidden', padding: '0 48px' },
+  accent: {
+    position: 'absolute', top: '10%', right: '8%',
+    width: '340px', height: '420px',
+    border: '1px solid rgba(201,169,110,0.08)',
+    pointerEvents: 'none',
+  },
+  inner: { maxWidth: '1200px', margin: '0 auto', width: '100%', paddingTop: '72px' },
+  eyebrow: {
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: '11px', fontWeight: 500, letterSpacing: '0.22em',
+    textTransform: 'uppercase', color: '#9A7A4A',
+    marginBottom: '28px',
+    display: 'flex', alignItems: 'center', gap: '12px',
+  },
+  headline: {
+    fontSize: 'clamp(56px, 8vw, 100px)',
+    fontWeight: 300, lineHeight: 1.0,
+    color: '#F5F0E8',
+    marginBottom: '28px',
+  },
+  sub: {
+    fontSize: '16px', color: '#A09A90',
+    lineHeight: 1.75, maxWidth: '480px',
+    marginBottom: '44px',
+  },
+  actions: { display: 'flex', gap: '14px', flexWrap: 'wrap' },
+  btnPrimary: {
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: '11px', fontWeight: 500,
+    letterSpacing: '0.12em', textTransform: 'uppercase',
+    color: '#F5F0E8', background: '#8C1A1A',
+    border: 'none', padding: '15px 36px', cursor: 'pointer',
+  },
+  btnGhost: {
+    fontFamily: "'DM Sans', sans-serif",
+    fontSize: '11px', fontWeight: 400,
+    letterSpacing: '0.12em', textTransform: 'uppercase',
+    color: '#C9A96E', background: 'transparent',
+    border: '1px solid #9A7A4A', padding: '14px 36px', cursor: 'pointer',
+  },
+  scroll: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px', marginTop: '80px', paddingBottom: '40px' },
+  scrollLine: { width: '1px', height: '40px', background: 'linear-gradient(to bottom, #9A7A4A, transparent)' },
+  scrollLabel: { fontFamily: "'DM Sans', sans-serif", fontSize: '9px', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#5A5450' },
+};
+
+/* ── About Section ─────────────────────────────────── */
+const About = ({ lang }) => {
+  const isRtl = lang === 'ar';
+  return (
+    <section style={{ ...aboutSt.wrap, direction: isRtl ? 'rtl' : 'ltr' }} className="fade-in">
+      <div style={aboutSt.inner}>
+        <div style={aboutSt.grid}>
+          <div style={aboutSt.imgCol}>
+            <div style={aboutSt.imgPlaceholder}>
+              <svg width="64" height="64" viewBox="0 0 48 48" fill="none" stroke="#C9A96E" strokeWidth="0.6" opacity="0.3">
+                <circle cx="24" cy="16" r="8"/>
+                <path d="M8 44c0-8.837 7.163-16 16-16s16 7.163 16 16"/>
+              </svg>
+            </div>
+            <div style={aboutSt.imgCaption}>
+              {isRtl ? 'ماجد المصموم · فنان وصانع' : 'Majed Almasmoum · Artist & Maker'}
+            </div>
+          </div>
+          <div style={aboutSt.textCol}>
+            <div style={aboutSt.sectionLabel}>{isRtl ? 'عن الفنان' : 'About'}</div>
+            <h2 style={{ ...aboutSt.heading, fontFamily: isRtl ? "'Amiri', serif" : "'Cormorant Garamond', serif" }}>
+              {isRtl ? 'حيث تلتقي التقنية بالفن' : 'Where Technology Meets Art'}
+            </h2>
+            <p style={{ ...aboutSt.body, fontFamily: isRtl ? "'Tajawal', sans-serif" : "'DM Sans', sans-serif" }}>
+              {isRtl
+                ? 'أعمل على دمج التقنيات الحديثة في الطباعة ثلاثية الأبعاد مع الرؤية الفنية لإنتاج قطع فريدة تتجاوز حدود الشكل والمادة. كل عمل هو استكشاف للعلاقة بين الدقة الرقمية والجمال المحسوس.'
+                : 'I work at the intersection of advanced fabrication and artistic vision, producing pieces that transcend the boundaries of form and material. Each work is an exploration of the relationship between digital precision and tactile beauty.'}
+            </p>
+            <div style={aboutSt.stat}>
+              <div style={aboutSt.statItem}>
+                <span style={aboutSt.statNum}>48+</span>
+                <span style={aboutSt.statLabel}>{isRtl ? 'عملًا منجزًا' : 'Works Created'}</span>
+              </div>
+              <div style={aboutSt.statItem}>
+                <span style={aboutSt.statNum}>12</span>
+                <span style={aboutSt.statLabel}>{isRtl ? 'إصدار محدود' : 'Limited Editions'}</span>
+              </div>
+              <div style={aboutSt.statItem}>
+                <span style={aboutSt.statNum}>5+</span>
+                <span style={aboutSt.statLabel}>{isRtl ? 'سنوات خبرة' : 'Years Practice'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const aboutSt = {
+  wrap: { padding: '120px 48px', borderTop: '1px solid #1E1C1C' },
+  inner: { maxWidth: '1200px', margin: '0 auto' },
+  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' },
+  imgCol: {},
+  imgPlaceholder: { background: '#141414', border: '1px solid #2A2724', aspectRatio: '3/4', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  imgCaption: { fontFamily: "'DM Sans', sans-serif", fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: '#5A5450', marginTop: '12px' },
+  textCol: {},
+  sectionLabel: { fontFamily: "'DM Sans', sans-serif", fontSize: '10px', fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#9A7A4A', marginBottom: '20px' },
+  heading: { fontSize: '42px', fontWeight: 300, color: '#F5F0E8', lineHeight: 1.15, marginBottom: '24px' },
+  body: { fontSize: '15px', color: '#A09A90', lineHeight: 1.85, marginBottom: '40px' },
+  stat: { display: 'flex', gap: '40px' },
+  statItem: { display: 'flex', flexDirection: 'column', gap: '4px' },
+  statNum: { fontFamily: "'Cormorant Garamond', serif", fontSize: '40px', fontWeight: 300, color: '#C9A96E', lineHeight: 1 },
+  statLabel: { fontFamily: "'DM Sans', sans-serif", fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#5A5450' },
+};
+
+/* ── Process Section ───────────────────────────────── */
+const Process = ({ lang }) => {
+  const isRtl = lang === 'ar';
+  const steps = isRtl
+    ? [['التصور', 'نبدأ بحوار عميق حول رؤيتك وتطلعاتك لتحديد الشكل والمفهوم.'], ['التصميم', 'نحوّل الفكرة إلى نموذج رقمي دقيق جاهز للإنتاج.'], ['الطباعة', 'طباعة دقيقة باستخدام أحدث التقنيات وأجود الخامات.'], ['التشطيب', 'معالجة يدوية دقيقة لإضفاء الأناقة والعمق على القطعة النهائية.']]
+    : [['Concept', 'We begin with a deep conversation about your vision to define the form and concept.'], ['Design', 'The idea is translated into a precise digital model ready for production.'], ['Print', 'Precision printing using the latest technology and finest materials.'], ['Finish', 'Careful hand-finishing to give the final piece elegance and depth.']];
+
+  return (
+    <section style={{ ...procSt.wrap, direction: isRtl ? 'rtl' : 'ltr' }}>
+      <div style={procSt.inner}>
+        <div style={procSt.header}>
+          <div style={procSt.sectionLabel}>{isRtl ? 'الأسلوب' : 'Process'}</div>
+          <h2 style={{ ...procSt.heading, fontFamily: isRtl ? "'Amiri', serif" : "'Cormorant Garamond', serif" }}>
+            {isRtl ? 'من الفكرة إلى القطعة' : 'From Idea to Object'}
+          </h2>
+        </div>
+        <div style={procSt.grid}>
+          {steps.map(([title, desc], i) => (
+            <div key={i} style={procSt.step}>
+              <div style={procSt.stepNum}>0{i + 1}</div>
+              <div style={procSt.stepLine}></div>
+              <div style={{ ...procSt.stepTitle, fontFamily: isRtl ? "'Amiri', serif" : "'Cormorant Garamond', serif" }}>{title}</div>
+              <div style={{ ...procSt.stepDesc, fontFamily: isRtl ? "'Tajawal', sans-serif" : "'DM Sans', sans-serif" }}>{desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const procSt = {
+  wrap: { padding: '120px 48px', background: '#0D0B0B', borderTop: '1px solid #1E1C1C' },
+  inner: { maxWidth: '1200px', margin: '0 auto' },
+  header: { marginBottom: '64px' },
+  sectionLabel: { fontFamily: "'DM Sans', sans-serif", fontSize: '10px', fontWeight: 500, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#9A7A4A', marginBottom: '16px' },
+  heading: { fontSize: '48px', fontWeight: 300, color: '#F5F0E8', lineHeight: 1.1 },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '2px' },
+  step: { background: '#141414', border: '1px solid #1E1C1C', padding: '32px 28px' },
+  stepNum: { fontFamily: "'Cormorant Garamond', serif", fontSize: '56px', fontWeight: 300, color: 'rgba(201,169,110,0.2)', lineHeight: 1, marginBottom: '16px' },
+  stepLine: { width: '24px', height: '1px', background: '#9A7A4A', marginBottom: '20px' },
+  stepTitle: { fontSize: '22px', fontWeight: 400, color: '#F5F0E8', marginBottom: '12px' },
+  stepDesc: { fontSize: '13px', color: '#A09A90', lineHeight: 1.7 },
+};
+
+/* ── Main App ──────────────────────────────────────── */
+const App = () => {
+  const [lang, setLang] = useState('en');
+  const [page, setPage] = useState('home');
+  const [selectedArtwork, setSelectedArtwork] = useState(null);
+
+  const isRtl = lang === 'ar';
+
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = isRtl ? 'rtl' : 'ltr';
+    document.body.style.fontFamily = isRtl ? "'Tajawal', sans-serif" : "'DM Sans', sans-serif";
+  }, [lang, isRtl]);
+
+  const handleNav = (target) => {
+    setPage(target);
+    setSelectedArtwork(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="page-container" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+      <Header
+        lang={lang}
+        onLangToggle={() => setLang(l => l === 'en' ? 'ar' : 'en')}
+        currentPage={page}
+        onNav={handleNav}
+      />
+
+      {/* HOME */}
+      {page === 'home' && (
+        <>
+          <Hero lang={lang} onExplore={() => handleNav('gallery')} />
+          <div style={{ padding: '80px 48px', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '48px' }}>
+              <div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#9A7A4A', marginBottom: '10px' }}>
+                  {isRtl ? 'أحدث الأعمال' : 'Selected Works'}
+                </div>
+                <h2 style={{ fontFamily: isRtl ? "'Amiri', serif" : "'Cormorant Garamond', serif", fontSize: '40px', fontWeight: 300, color: '#F5F0E8' }}>
+                  {isRtl ? 'من المعرض' : 'From the Gallery'}
+                </h2>
+              </div>
+              <button onClick={() => handleNav('gallery')} style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#C9A96E', background: 'none', border: 'none', cursor: 'pointer' }}>
+                {isRtl ? 'عرض الكل ←' : 'View All →'}
+              </button>
+            </div>
+            <GalleryGrid lang={lang} onArtworkClick={setSelectedArtwork} />
+          </div>
+          <About lang={lang} />
+          <Process lang={lang} />
+        </>
+      )}
+
+      {/* GALLERY */}
+      {page === 'gallery' && (
+        <div style={{ paddingTop: '72px', minHeight: '100vh' }}>
+          <div style={{ padding: '64px 48px', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ marginBottom: '48px' }}>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '10px', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#9A7A4A', marginBottom: '12px' }}>
+                {isRtl ? 'الأعمال' : 'Collection'}
+              </div>
+              <h1 style={{ fontFamily: isRtl ? "'Amiri', serif" : "'Cormorant Garamond', serif", fontSize: '56px', fontWeight: 300, color: '#F5F0E8' }}>
+                {isRtl ? 'المعرض' : 'Gallery'}
+              </h1>
+            </div>
+            <GalleryGrid lang={lang} onArtworkClick={setSelectedArtwork} />
+          </div>
+        </div>
+      )}
+
+      {/* ABOUT */}
+      {page === 'about' && (
+        <div style={{ paddingTop: '72px' }}>
+          <About lang={lang} />
+          <Process lang={lang} />
+        </div>
+      )}
+
+      {/* PROCESS */}
+      {page === 'process' && (
+        <div style={{ paddingTop: '72px' }}>
+          <Process lang={lang} />
+        </div>
+      )}
+
+      {/* COMMISSION / CONTACT */}
+      {(page === 'commission' || page === 'contact') && (
+        <div style={{ paddingTop: '72px', minHeight: '100vh', padding: '72px 48px 0' }}>
+          <CommissionForm lang={lang} onClose={() => handleNav('home')} />
+        </div>
+      )}
+
+      {/* Artwork detail overlay */}
+      {selectedArtwork && (
+        <ArtworkDetail
+          artwork={selectedArtwork}
+          lang={lang}
+          onClose={() => setSelectedArtwork(null)}
+          onCommission={() => { setSelectedArtwork(null); handleNav('commission'); }}
+        />
+      )}
+
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 48px' }}>
+        <Footer lang={lang} />
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body { background: var(--bg-void); padding: 28px; max-width: 480px; display: flex; flex-direction: column; gap: 16px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-secondary); }
+.field-hint { font-family: var(--font-body); font-size: 11px; color: var(--fg-tertiary); margin-top: 4px; }
+.field-error { font-family: var(--font-body); font-size: 11px; color: #C0392B; margin-top: 4px; }
+input, textarea, select {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--fg-primary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  padding: 12px 14px;
+  width: 100%;
+  outline: none;
+  transition: border-color 200ms ease;
+  -webkit-appearance: none;
+  border-radius: 0;
+}
+input::placeholder, textarea::placeholder { color: var(--fg-tertiary); }
+input:focus, textarea:focus, select:focus { border-color: var(--gold-muted); }
+input.error { border-color: var(--color-error); }
+textarea { resize: vertical; min-height: 80px; }
+select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235A5450' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+</style></head>
+<body>
+<div class="field">
+  <div class="field-label">Full Name</div>
+  <input type="text" placeholder="Your name">
+</div>
+<div class="field">
+  <div class="field-label">Email</div>
+  <input type="email" placeholder="you@example.com">
+  <div class="field-hint">We'll respond within 48 hours.</div>
+</div>
+<div class="field">
+  <div class="field-label">Work Type</div>
+  <select>
+    <option value="">Select a category…</option>
+    <option>Sculpture</option>
+    <option>Portrait</option>
+    <option>Abstract</option>
+    <option>Custom Commission</option>
+  </select>
+</div>
+<div class="field">
+  <div class="field-label">Message</div>
+  <textarea placeholder="Describe your commission idea…"></textarea>
+</div>
+<div class="field">
+  <div class="field-label">Phone (Error state)</div>
+  <input type="tel" class="error" value="invalid number">
+  <div class="field-error">Please enter a valid phone number.</div>
+</div>
+</body></html>
