@@ -28,6 +28,7 @@ type UploadPreview = {
   file: File;
   base64: string;
   dataUrl: string;
+  contentType: string;
 };
 
 type VerifyResult = {
@@ -74,7 +75,31 @@ function Tag({
   );
 }
 
+async function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function canRasterizeInBrowser(file: File) {
+  const extension = file.name.split(".").pop()?.toLowerCase() || "";
+  return !["heic", "heif"].includes(extension);
+}
+
 async function resizeImage(file: File): Promise<UploadPreview> {
+  if (!canRasterizeInBrowser(file)) {
+    const dataUrl = await readFileAsDataUrl(file);
+    return {
+      file,
+      base64: dataUrl.split(",")[1] || "",
+      dataUrl,
+      contentType: file.type || "image/heic",
+    };
+  }
+
   return new Promise((resolve, reject) => {
     const image = new Image();
     const objectUrl = URL.createObjectURL(file);
@@ -113,6 +138,7 @@ async function resizeImage(file: File): Promise<UploadPreview> {
               file,
               base64: dataUrl.split(",")[1] || "",
               dataUrl,
+              contentType: "image/jpeg",
             });
           };
           reader.onerror = () => reject(reader.error);
@@ -311,7 +337,10 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
   }
 
   async function handleFiles(files: FileList | File[]) {
-    const image = Array.from(files).find((file) => file.type.startsWith("image/"));
+    const image = Array.from(files).find((file) => {
+      const extension = file.name.split(".").pop()?.toLowerCase() || "";
+      return file.type.startsWith("image/") || ["heic", "heif"].includes(extension);
+    });
     if (!image) return;
 
     const prepared = await resizeImage(image);
@@ -328,7 +357,7 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
       body: JSON.stringify({
         filename: preview.file.name,
         content: preview.base64,
-        contentType: "image/jpeg",
+        contentType: preview.contentType,
       }),
     });
   }
@@ -756,10 +785,13 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
               <p className="mt-1 text-xs text-white/35">
                 {isEditing ? "رفع صورة جديدة يستبدل الصورة الحالية" : "كل عمل ينحفظ كإضافة فردية"}
               </p>
+              <p className="mt-1 text-[11px] text-white/30">
+                يدعم JPG و PNG و WEBP و HEIC و HEIF وغيرها من صيغ الصور الشائعة.
+              </p>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,.heic,.heif,.webp,.avif"
                 hidden
                 onChange={(event) => {
                   if (event.target.files) handleFiles(event.target.files);

@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
+  ArrowLeftToLine,
+  ArrowRightToLine,
   ArrowUp,
   Eye,
   EyeOff,
@@ -174,7 +176,8 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
   const [passwordInput, setPasswordInput] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
   const [saving, setSaving] = useState(false);
-  const [draggingSection, setDraggingSection] = useState<SiteSectionKey | null>(null);
+  const [draggingBlock, setDraggingBlock] = useState<SiteBlockKey | null>(null);
+  const [collapsedEditor, setCollapsedEditor] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "ok" | "err" } | null>(null);
 
   useEffect(() => {
@@ -237,7 +240,7 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
   function closeCanvasEditor() {
     setDraft(content);
     setCanvasEditMode(false);
-    setDraggingSection(null);
+    setDraggingBlock(null);
   }
 
   function updateBlockStyle(blockKey: SiteBlockKey, patch: Partial<SiteContent["layout"]["blockStyles"][SiteBlockKey]>) {
@@ -256,40 +259,40 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
     }));
   }
 
-  function updateSectionOrder(section: SiteSectionKey, direction: -1 | 1) {
-    const currentIndex = draft.layout.sectionOrder.indexOf(section);
+  function updateBlockOrder(block: SiteBlockKey, direction: -1 | 1) {
+    const currentIndex = draft.layout.blockOrder.indexOf(block);
     const nextIndex = currentIndex + direction;
-    if (currentIndex === -1 || nextIndex < 0 || nextIndex >= draft.layout.sectionOrder.length) return;
+    if (currentIndex === -1 || nextIndex < 0 || nextIndex >= draft.layout.blockOrder.length) return;
 
-    const nextOrder = [...draft.layout.sectionOrder];
+    const nextOrder = [...draft.layout.blockOrder];
     [nextOrder[currentIndex], nextOrder[nextIndex]] = [nextOrder[nextIndex], nextOrder[currentIndex]];
 
     setDraft((current) => ({
       ...current,
       layout: {
         ...current.layout,
-        sectionOrder: nextOrder,
+        blockOrder: nextOrder,
       },
     }));
   }
 
-  function reorderSectionsByDrop(target: SiteSectionKey) {
-    if (!draggingSection || draggingSection === target) return;
+  function reorderBlocksByDrop(target: SiteBlockKey) {
+    if (!draggingBlock || draggingBlock === target) return;
 
     setDraft((current) => {
-      const filtered = current.layout.sectionOrder.filter((item) => item !== draggingSection);
+      const filtered = current.layout.blockOrder.filter((item) => item !== draggingBlock);
       const targetIndex = filtered.indexOf(target);
-      filtered.splice(targetIndex, 0, draggingSection);
+      filtered.splice(targetIndex, 0, draggingBlock);
 
       return {
         ...current,
         layout: {
           ...current.layout,
-          sectionOrder: filtered,
+          blockOrder: filtered,
         },
       };
     });
-    setDraggingSection(null);
+    setDraggingBlock(null);
   }
 
   async function saveContent() {
@@ -343,9 +346,10 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
         ? "grid-cols-3"
         : "grid-cols-2 sm:grid-cols-4";
 
-  const activeSections = view.layout.sectionOrder.filter((section) => {
-    if (section === "profile" && !view.layout.showProfileCard) return false;
-    return !view.layout.blockStyles[section].hidden;
+  const activeBlocks = view.layout.blockOrder.filter((block) => {
+    if (block === "hero") return !view.layout.blockStyles.hero.hidden;
+    if (block === "profile" && !view.layout.showProfileCard) return false;
+    return !view.layout.blockStyles[block].hidden;
   });
 
   function renderHeroContent() {
@@ -528,8 +532,8 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
         allowHide
         hidden={isHidden}
         onResize={(next) => updateBlockStyle(section, next)}
-        onDragStart={() => setDraggingSection(section)}
-        onDrop={() => reorderSectionsByDrop(section)}
+        onDragStart={() => setDraggingBlock(section)}
+        onDrop={() => reorderBlocksByDrop(section)}
         onToggleHidden={() => updateBlockStyle(section, { hidden: !draft.layout.blockStyles[section].hidden })}
       >
         {section === "profile" ? renderProfileContent() : null}
@@ -544,36 +548,66 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
     <main className="theme-shell min-h-screen text-[var(--foreground)]">
       <Nav active="home" />
 
-      <EditableBlock
-        blockKey="hero"
-        label="الهيرو الرئيسي"
-        editing={canvasEditMode}
-        width={view.layout.blockStyles.hero.width}
-        minHeight={view.layout.blockStyles.hero.minHeight}
-        sectionClassName="pb-12 pt-10 sm:pt-12 lg:pt-16"
-        onResize={(next) => updateBlockStyle("hero", next)}
-      >
-        {renderHeroContent()}
-      </EditableBlock>
+      {activeBlocks.map((block) => {
+        if (block === "hero") {
+          return (
+            <EditableBlock
+              key="hero"
+              blockKey="hero"
+              label="الهيرو الرئيسي"
+              editing={canvasEditMode}
+              width={view.layout.blockStyles.hero.width}
+              minHeight={view.layout.blockStyles.hero.minHeight}
+              sectionClassName="pb-12 pt-10 sm:pt-12 lg:pt-16"
+              draggable
+              allowHide={false}
+              onResize={(next) => updateBlockStyle("hero", next)}
+              onDragStart={() => setDraggingBlock("hero")}
+              onDrop={() => reorderBlocksByDrop("hero")}
+            >
+              {renderHeroContent()}
+            </EditableBlock>
+          );
+        }
 
-      {activeSections.map((section) => renderSection(section))}
+        return renderSection(block);
+      })}
 
       {canvasEditMode ? (
-        <aside className="fixed inset-y-4 left-4 z-50 w-[min(390px,calc(100vw-2rem))] overflow-y-auto rounded-[28px] border border-white/10 bg-[#111117]/94 p-4 shadow-2xl shadow-black/45 backdrop-blur">
+        <aside
+          className={`fixed inset-y-4 left-4 z-50 overflow-y-auto rounded-[28px] border border-white/10 bg-[#111117]/94 p-4 shadow-2xl shadow-black/45 backdrop-blur transition-all ${
+            collapsedEditor ? "w-20" : "w-[min(390px,calc(100vw-2rem))]"
+          }`}
+        >
           <div className="mb-4 flex items-center justify-between gap-3 border-b border-white/10 pb-3">
-            <div>
-              <h2 className="text-lg font-black text-white">تحرير حي للصفحة</h2>
-              <p className="mt-1 text-xs text-white/45">اسحب البلوكات بالماوس، وكبّرها وصغّرها من الزاوية السفلية.</p>
+            {!collapsedEditor ? (
+              <div>
+                <h2 className="text-lg font-black text-white">تحرير حي للصفحة</h2>
+                <p className="mt-1 text-xs text-white/45">اسحب البلوكات بالماوس، وكبّرها وصغّرها من الزاوية السفلية.</p>
+              </div>
+            ) : <div />}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setCollapsedEditor((value) => !value)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:bg-white/10 hover:text-white"
+              >
+                {collapsedEditor ? <ArrowRightToLine size={18} /> : <ArrowLeftToLine size={18} />}
+              </button>
+              {!collapsedEditor ? (
+                <button
+                  type="button"
+                  onClick={closeCanvasEditor}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:bg-white/10 hover:text-white"
+                >
+                  <X size={18} />
+                </button>
+              ) : null}
             </div>
-            <button
-              type="button"
-              onClick={closeCanvasEditor}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:bg-white/10 hover:text-white"
-            >
-              <X size={18} />
-            </button>
           </div>
 
+          {!collapsedEditor ? (
+          <>
           <div className="space-y-5">
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <h3 className="mb-3 text-sm font-black text-white">النصوص والعناوين</h3>
@@ -613,23 +647,25 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <h3 className="mb-3 text-sm font-black text-white">القوالب والبلوكات</h3>
+                <h3 className="mb-3 text-sm font-black text-white">القوالب والبلوكات</h3>
               <div className="space-y-2">
-                {draft.layout.sectionOrder.map((section, index) => (
-                  <div key={section} className="flex items-center justify-between rounded-2xl border border-white/8 bg-black/20 px-3 py-3">
+                {draft.layout.blockOrder.map((block, index) => (
+                  <div key={block} className="flex items-center justify-between rounded-2xl border border-white/8 bg-black/20 px-3 py-3">
                     <div className="flex items-center gap-3">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-xs text-white/55">
                         {index + 1}
                       </span>
                       <div>
-                        <div className="text-sm font-bold text-white">{sectionLabels[section]}</div>
+                        <div className="text-sm font-bold text-white">
+                          {block === "hero" ? "الهيرو الرئيسي" : sectionLabels[block]}
+                        </div>
                         <div className="text-[11px] text-white/40">اسحب البلوك من الصفحة أو رتبه من هنا</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => updateSectionOrder(section, -1)}
+                        onClick={() => updateBlockOrder(block, -1)}
                         disabled={index === 0}
                         className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 disabled:opacity-30"
                       >
@@ -637,21 +673,23 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
                       </button>
                       <button
                         type="button"
-                        onClick={() => updateSectionOrder(section, 1)}
-                        disabled={index === draft.layout.sectionOrder.length - 1}
+                        onClick={() => updateBlockOrder(block, 1)}
+                        disabled={index === draft.layout.blockOrder.length - 1}
                         className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10 disabled:opacity-30"
                       >
                         <ArrowDown size={15} />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateBlockStyle(section, { hidden: !draft.layout.blockStyles[section].hidden })
-                        }
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10"
-                      >
-                        {draft.layout.blockStyles[section].hidden ? <EyeOff size={15} /> : <Eye size={15} />}
-                      </button>
+                      {block !== "hero" ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateBlockStyle(block, { hidden: !draft.layout.blockStyles[block].hidden })
+                          }
+                          className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10"
+                        >
+                          {draft.layout.blockStyles[block].hidden ? <EyeOff size={15} /> : <Eye size={15} />}
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 ))}
@@ -821,6 +859,26 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
               </button>
             </div>
           </div>
+          </>
+          ) : (
+            <div className="flex flex-col items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={saveContent}
+                disabled={saving}
+                className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-l from-[#fb923c] to-[#f59e0b] text-black transition hover:opacity-90 disabled:opacity-45"
+              >
+                <Save size={18} />
+              </button>
+              <button
+                type="button"
+                onClick={closeCanvasEditor}
+                className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/70 transition hover:bg-white/10"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          )}
         </aside>
       ) : null}
 

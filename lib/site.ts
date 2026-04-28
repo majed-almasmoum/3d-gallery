@@ -12,6 +12,7 @@ export const defaultSiteLayout: SiteLayout = {
   socialColumns: 4,
   showProfileCard: true,
   sectionOrder: ["profile", "printers", "socials", "about"],
+  blockOrder: ["hero", "profile", "printers", "socials", "about"],
   blockStyles: {
     hero: { width: 100, minHeight: 0 },
     profile: { width: 100, minHeight: 0, hidden: false },
@@ -112,10 +113,17 @@ function normalizeLayout(layout: Partial<SiteLayout> | undefined): SiteLayout {
   const sectionOrder = (layout?.sectionOrder || []).filter((section) =>
     defaultSiteLayout.sectionOrder.includes(section),
   );
+  const blockOrder = (layout?.blockOrder || []).filter((block) =>
+    defaultSiteLayout.blockOrder.includes(block),
+  );
 
   const mergedSectionOrder = [
     ...sectionOrder,
     ...defaultSiteLayout.sectionOrder.filter((section) => !sectionOrder.includes(section)),
+  ];
+  const mergedBlockOrder = [
+    ...blockOrder,
+    ...defaultSiteLayout.blockOrder.filter((block) => !blockOrder.includes(block)),
   ];
 
   const blockStyles = {
@@ -144,6 +152,7 @@ function normalizeLayout(layout: Partial<SiteLayout> | undefined): SiteLayout {
     socialIconSize: Math.min(72, Math.max(36, Number(layout?.socialIconSize || defaultSiteLayout.socialIconSize))),
     showProfileCard: layout?.showProfileCard ?? defaultSiteLayout.showProfileCard,
     sectionOrder: mergedSectionOrder,
+    blockOrder: mergedBlockOrder,
     blockStyles: normalizedBlockStyles,
   };
 }

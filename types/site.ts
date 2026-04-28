@@ -33,6 +33,7 @@ export type SiteLayout = {
   socialColumns: 2 | 3 | 4;
   showProfileCard: boolean;
   sectionOrder: SiteSectionKey[];
+  blockOrder: SiteBlockKey[];
   blockStyles: Record<SiteBlockKey, SiteBlockStyle>;
 };
 
