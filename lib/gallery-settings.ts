@@ -1,8 +1,9 @@
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { worksBucket } from "@/lib/supabase/config";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { GallerySettings, GalleryStatCardKey } from "@/types/gallery-settings";
 
-export const GALLERY_SETTINGS_KEY = "gallery_layout";
+export const gallerySettingsPath = "site/gallery-settings.json";
 
 export const defaultGallerySettings: GallerySettings = {
   statsCompact: false,
@@ -28,13 +29,18 @@ export async function getGallerySettings(): Promise<GallerySettings> {
   const supabase = createServerSupabaseClient();
   if (!supabase) return defaultGallerySettings;
 
-  const { data } = await supabase
-    .from("site_content")
-    .select("data")
-    .eq("key", GALLERY_SETTINGS_KEY)
-    .maybeSingle();
+  try {
+    const { data, error } = await supabase.storage
+      .from(worksBucket)
+      .download(gallerySettingsPath);
 
-  return normalizeGallerySettings((data?.data as Partial<GallerySettings>) || null);
+    if (error || !data) return defaultGallerySettings;
+
+    const json = JSON.parse(await data.text()) as Partial<GallerySettings>;
+    return normalizeGallerySettings(json);
+  } catch {
+    return defaultGallerySettings;
+  }
 }
 
 export async function saveGallerySettings(settings: GallerySettings) {
@@ -44,14 +50,12 @@ export async function saveGallerySettings(settings: GallerySettings) {
   }
 
   const normalized = normalizeGallerySettings(settings);
-  const { error } = await supabase.from("site_content").upsert(
-    {
-      key: GALLERY_SETTINGS_KEY,
-      data: normalized,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "key" },
-  );
+  const { error } = await supabase.storage
+    .from(worksBucket)
+    .upload(gallerySettingsPath, JSON.stringify(normalized, null, 2), {
+      contentType: "application/json",
+      upsert: true,
+    });
 
   if (error) throw new Error(error.message);
 
