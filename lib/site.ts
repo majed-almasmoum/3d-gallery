@@ -12,6 +12,13 @@ export const defaultSiteLayout: SiteLayout = {
   socialColumns: 4,
   showProfileCard: true,
   sectionOrder: ["profile", "printers", "socials", "about"],
+  blockStyles: {
+    hero: { width: 100, minHeight: 0 },
+    profile: { width: 100, minHeight: 0, hidden: false },
+    printers: { width: 100, minHeight: 0, hidden: false },
+    socials: { width: 100, minHeight: 0, hidden: false },
+    about: { width: 100, minHeight: 0, hidden: false },
+  },
 };
 
 export const defaultSiteContent: SiteContent = {
@@ -111,6 +118,22 @@ function normalizeLayout(layout: Partial<SiteLayout> | undefined): SiteLayout {
     ...defaultSiteLayout.sectionOrder.filter((section) => !sectionOrder.includes(section)),
   ];
 
+  const blockStyles = {
+    ...defaultSiteLayout.blockStyles,
+    ...(layout?.blockStyles || {}),
+  };
+
+  const normalizedBlockStyles = Object.fromEntries(
+    Object.entries(blockStyles).map(([key, block]) => [
+      key,
+      {
+        width: Math.min(100, Math.max(48, Number(block?.width || 100))),
+        minHeight: Math.max(0, Number(block?.minHeight || 0)),
+        hidden: Boolean(block?.hidden),
+      },
+    ]),
+  ) as SiteLayout["blockStyles"];
+
   return {
     ...defaultSiteLayout,
     ...layout,
@@ -121,6 +144,7 @@ function normalizeLayout(layout: Partial<SiteLayout> | undefined): SiteLayout {
     socialIconSize: Math.min(72, Math.max(36, Number(layout?.socialIconSize || defaultSiteLayout.socialIconSize))),
     showProfileCard: layout?.showProfileCard ?? defaultSiteLayout.showProfileCard,
     sectionOrder: mergedSectionOrder,
+    blockStyles: normalizedBlockStyles,
   };
 }
 

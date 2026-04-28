@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 type NavProps = {
@@ -9,8 +10,14 @@ export function Nav({ active }: NavProps) {
     <nav className="sticky top-0 z-50 border-b border-white/8 bg-[#080706]/78 px-4 backdrop-blur-xl">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 py-3">
         <Link href="/" aria-label="الرئيسية" className="group flex min-w-0 items-center gap-3">
-          <span className="font-display flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[color:var(--gold)]/25 bg-white/[0.04] text-xl text-[color:var(--gold)] shadow-lg shadow-black/25 transition group-hover:border-[color:var(--gold)]/45">
-            M
+          <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[color:var(--gold)]/25 bg-white/[0.04] shadow-lg shadow-black/25 transition group-hover:border-[color:var(--gold)]/45">
+            <Image
+              src="/brand-logo.jpeg"
+              alt="Majed Almasmoum logo"
+              fill
+              className="object-cover"
+              sizes="44px"
+            />
           </span>
           <span className="min-w-0">
             <span className="font-display block truncate text-xl text-[var(--foreground)] sm:text-2xl">

@@ -17,6 +17,13 @@ export type SiteSocial = {
 };
 
 export type SiteSectionKey = "profile" | "printers" | "socials" | "about";
+export type SiteBlockKey = "hero" | SiteSectionKey;
+
+export type SiteBlockStyle = {
+  width: number;
+  minHeight: number;
+  hidden?: boolean;
+};
 
 export type SiteLayout = {
   titleScale: number;
@@ -26,6 +33,7 @@ export type SiteLayout = {
   socialColumns: 2 | 3 | 4;
   showProfileCard: boolean;
   sectionOrder: SiteSectionKey[];
+  blockStyles: Record<SiteBlockKey, SiteBlockStyle>;
 };
 
 export type SiteContent = {
