@@ -652,9 +652,10 @@ export function GalleryClient({ initialWorks }: { initialWorks: Work[] }) {
             title="إضافة عمل"
             aria-label="إضافة عمل"
             onClick={openAddModal}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] text-black shadow-xl shadow-black/35 transition hover:scale-105"
+            className="inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] px-4 text-sm font-bold text-black shadow-xl shadow-black/35 transition hover:scale-105 sm:h-14 sm:px-5"
           >
-            <Plus size={26} />
+            <Plus size={20} />
+            <span>إضافة عمل</span>
           </button>
         ) : null}
         <button

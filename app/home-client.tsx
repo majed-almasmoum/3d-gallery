@@ -230,20 +230,6 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
                 </div>
               </div>
             </div>
-
-            <div className="rounded-[30px] border border-[color:var(--gold)]/12 bg-[linear-gradient(180deg,rgba(123,48,45,0.18),rgba(17,16,14,0.96))] p-6 shadow-2xl shadow-black/25">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--gold-strong)]">
-                Curated Output
-              </p>
-              <p className="font-display mt-5 text-3xl leading-tight text-[var(--foreground)]">
-                مجسمات تُعرض كقطع نهائية,
-                <br />
-                لا كنسخ خام فقط.
-              </p>
-              <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
-                التركيز هنا على حضور العمل بصرياً: خامة أنظف، عرض أهدأ، وتفاصيل أقرب لواجهة استوديو منها إلى بورتفوليو تقليدي.
-              </p>
-            </div>
           </aside>
         </div>
       </section>
