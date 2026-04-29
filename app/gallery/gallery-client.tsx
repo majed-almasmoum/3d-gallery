@@ -637,19 +637,19 @@ export function GalleryClient({
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-[1440px] grid-cols-1 gap-6 px-5 pb-24 md:grid-cols-12">
+      <section className="mx-auto grid max-w-[1440px] grid-cols-3 gap-3 px-4 pb-24 md:grid-cols-12 md:gap-6 md:px-5">
         {filteredWorks.length ? (
           filteredWorks.map((work, index) => (
             <article
               key={work.id}
-              className={`animate-fade-up luxury-panel group relative overflow-hidden rounded-[24px] transition duration-700 hover:-translate-y-1 hover:shadow-[0_15px_50px_rgba(212,175,55,0.08)] ${
+              className={`animate-fade-up luxury-panel group relative overflow-hidden rounded-[18px] transition duration-700 hover:-translate-y-1 hover:shadow-[0_15px_50px_rgba(212,175,55,0.08)] md:rounded-[24px] ${
                 index === 0 ? "md:col-span-8 md:min-h-[560px]" : index === 1 ? "md:col-span-4 md:min-h-[560px]" : "md:col-span-6 md:min-h-[420px]"
               }`}
               style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}
             >
               <button
                 type="button"
-                className={`relative block w-full overflow-hidden bg-black/30 text-right ${
+                className={`relative block aspect-[0.76] w-full overflow-hidden bg-black/30 text-right md:aspect-auto ${
                   index === 0 ? "h-[560px]" : index === 1 ? "h-[560px]" : "h-[420px]"
                 }`}
                 onClick={() => work.images[0] && setLightbox({ work, index: 0 })}
@@ -667,14 +667,14 @@ export function GalleryClient({
                   </div>
                 )}
                 {work.images.length > 1 ? (
-                  <span className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full border border-[color:var(--gold)]/25 bg-black/70 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-[color:var(--gold-strong)]">
+                  <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full border border-[color:var(--gold)]/25 bg-black/70 px-2 py-1 text-[10px] uppercase tracking-[0.1em] text-[color:var(--gold-strong)] md:left-4 md:top-4 md:px-3 md:text-[11px] md:tracking-[0.16em]">
                     <Images size={13} />
                     {work.images.length}
                   </span>
                 ) : null}
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/45 to-transparent" />
                 {adminMode ? (
-                  <span className="absolute right-3 top-3 flex gap-2 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
+                  <span className="absolute right-2 top-2 flex gap-1 opacity-100 sm:gap-2 sm:opacity-0 sm:transition sm:group-hover:opacity-100 md:right-3 md:top-3">
                     <span
                       role="button"
                       tabIndex={0}
@@ -690,9 +690,9 @@ export function GalleryClient({
                           openEditModal(work);
                         }
                       }}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-black/70 text-white backdrop-blur transition hover:border-[color:var(--gold)]/50 hover:text-[color:var(--gold)]"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/15 bg-black/70 text-white backdrop-blur transition hover:border-[color:var(--gold)]/50 hover:text-[color:var(--gold)] md:h-9 md:w-9"
                     >
-                      <Pencil size={15} />
+                      <Pencil size={13} />
                     </span>
                     <span
                       role="button"
@@ -709,14 +709,14 @@ export function GalleryClient({
                           deleteWork(work);
                         }
                       }}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-300/20 bg-red-600/90 text-white backdrop-blur transition hover:bg-red-500"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-red-300/20 bg-red-600/90 text-white backdrop-blur transition hover:bg-red-500 md:h-9 md:w-9"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={13} />
                     </span>
                   </span>
                 ) : null}
-                <div className="absolute bottom-0 left-0 right-0 z-10 p-6 sm:p-8">
-                  <div className="mb-4 flex flex-wrap gap-2 opacity-0 transition duration-500 group-hover:opacity-100">
+                <div className="absolute bottom-0 left-0 right-0 z-10 p-3 md:p-6 lg:p-8">
+                  <div className="mb-4 hidden flex-wrap gap-2 opacity-0 transition duration-500 group-hover:opacity-100 md:flex">
                     <Tag className="border-[color:var(--gold)]/25 bg-black/70 text-[color:var(--gold-strong)]">
                       {work.material}
                     </Tag>
@@ -731,10 +731,10 @@ export function GalleryClient({
                       {colorLabels[work.colorMethod]}
                     </Tag>
                   </div>
-                  <h2 className={`font-display text-[var(--foreground)] drop-shadow-xl ${index === 0 ? "text-5xl" : "text-3xl"}`}>
+                  <h2 className={`font-display line-clamp-2 text-[var(--foreground)] drop-shadow-xl ${index === 0 ? "text-sm md:text-5xl" : "text-sm md:text-3xl"}`}>
                     {work.name}
                   </h2>
-                  <p className={`mt-4 max-w-2xl text-[var(--muted)] ${index === 0 ? "text-lg leading-8" : "text-base leading-7"}`}>
+                  <p className={`mt-4 hidden max-w-2xl text-[var(--muted)] md:block ${index === 0 ? "text-lg leading-8" : "text-base leading-7"}`}>
                     {summarizeDescription(work.description)}
                   </p>
                 </div>
