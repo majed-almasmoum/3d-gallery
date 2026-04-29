@@ -354,57 +354,41 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
 
   function renderHeroContent() {
     return (
-      <div className="luxury-panel rounded-[34px] p-7 sm:p-9 lg:p-11">
-        <p className="mb-5 inline-flex rounded-full border border-[color:var(--gold)]/25 bg-[color:var(--gold)]/8 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[color:var(--gold-strong)]">
-          {view.badge}
-        </p>
-
-        <div className="max-w-3xl">
-          <h1 className="font-display leading-[0.92] text-[var(--foreground)]" style={{ fontSize: titleSize }}>
+      <div className="luxury-panel relative overflow-hidden rounded-[28px]">
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-40"
+          style={{
+            backgroundImage:
+              "url('https://lh3.googleusercontent.com/aida-public/AB6AXuB2vFbILTapLGw59iYHqW9TAiQ10I-SxLv5OSYP_4P3_dh5vZiIQH4oIGAsbgKh-IjGwmfbrM890dxACC5ckjNp7_Lj9UCCXqtg5Q2JR-D29hMfU51qFj3hURhgoEtHanzfsO7X-W0r-2SALan3PM7SuiYw4D39q9NP-9zZJMGnICY7FNzxuQELIXzQqhoH55Hh18W6uKCQTfMlrVgnpq9Luqve7sble7eIAjtTr5ccJTbbsSDJBofI3q85Wy1qTwT-n6M49YGFi64')",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
+        <div className="relative flex min-h-[78vh] flex-col items-center justify-center px-6 py-16 text-center sm:px-10">
+          <p className="mb-6 text-[11px] uppercase tracking-[0.32em] text-[color:var(--gold)]">{view.badge}</p>
+          <h1 className="font-display max-w-4xl leading-[0.95] text-[var(--foreground)] drop-shadow-2xl" style={{ fontSize: titleSize }}>
             {view.titleLine1}
             <br />
-            <span className="text-[color:var(--gold)]">{view.titleLine2}</span>
+            <span>{view.titleLine2}</span>
           </h1>
-          <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--muted)] md:text-lg">{view.subtitle}</p>
-        </div>
-
-        <div className={`mt-8 grid gap-3 ${statsGridClass}`}>
-          {view.stats.map((stat) => (
-            <div key={`${stat.value}-${stat.label}`} className="rounded-[24px] border border-white/8 bg-white/[0.03] p-4">
-              <div className="font-display text-3xl text-[color:var(--gold)]">{stat.value}</div>
-              <p className="mt-2 text-sm leading-6 text-[var(--subtle)]">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-8 flex flex-wrap gap-2">
-          {["Commissioned Pieces", "Refined Finish", "Custom Scale", "Collector Display"].map((item) => (
-            <span
-              key={item}
-              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]"
+          <p className="mt-8 max-w-2xl text-base leading-8 text-[var(--muted)] sm:text-lg">{view.subtitle}</p>
+          <div className="mt-10 flex flex-wrap justify-center gap-4">
+            <Link
+              href="/gallery"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] px-8 text-[11px] font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_30px_rgba(212,175,55,0.16)] transition hover:opacity-90"
             >
-              {item}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/gallery"
-            className="inline-flex h-12 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] px-5 text-sm font-bold text-black shadow-lg shadow-black/35 transition hover:opacity-90 sm:px-6"
-          >
-            <Images size={18} />
-            استعرض الأعمال
-          </Link>
-          <a
-            href={view.whatsappUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-12 items-center gap-2 rounded-full border border-[color:var(--gold)]/20 bg-[color:var(--crimson)]/18 px-5 text-sm font-semibold text-[var(--foreground)] transition hover:border-[color:var(--gold)]/40 hover:bg-[color:var(--crimson)]/26 sm:px-6"
-          >
-            <MessageCircle size={18} />
-            تواصل مباشر
-          </a>
+              <Images size={16} />
+              Enter Gallery
+            </Link>
+            <a
+              href={view.whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex h-12 items-center gap-2 rounded-full border border-[color:var(--gold)]/35 bg-black/30 px-8 text-[11px] font-semibold uppercase tracking-[0.18em] text-[color:var(--gold-strong)] transition hover:bg-white/5"
+            >
+              <MessageCircle size={16} />
+              Contact
+            </a>
+          </div>
         </div>
       </div>
     );
@@ -412,20 +396,17 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
 
   function renderProfileContent() {
     return (
-      <div className="luxury-panel rounded-[30px] p-6">
-        <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--subtle)]">Studio Profile</p>
-        <div className="mt-5 grid gap-4 sm:grid-cols-3">
-          <div className="border-b border-white/8 pb-4 sm:border-b-0 sm:border-l sm:pl-4">
-            <div className="font-display text-3xl text-[color:var(--gold)]">{view.printers.length}</div>
-            <p className="mt-2 text-sm text-[var(--muted)]">منصات طباعة مخصصة لأحجام وأنماط مختلفة</p>
-          </div>
-          <div className="border-b border-white/8 pb-4 sm:border-b-0 sm:border-l sm:pl-4">
-            <div className="font-display text-3xl text-[color:var(--gold)]">{view.socials.length}</div>
-            <p className="mt-2 text-sm text-[var(--muted)]">قنوات جاهزة لاستقبال الطلبات والتواصل</p>
-          </div>
-          <div>
-            <div className="font-display text-3xl text-[color:var(--gold)]">2022</div>
-            <p className="mt-2 text-sm text-[var(--muted)]">بداية الرحلة التي تحولت من هواية إلى أسلوب عرض متكامل</p>
+      <div className="luxury-panel rounded-[28px] px-4 py-10 sm:px-8">
+        <div className={`grid gap-6 text-center ${statsGridClass}`}>
+          {view.stats.map((stat) => (
+            <div key={`${stat.value}-${stat.label}`} className="px-4">
+              <div className="font-display text-5xl text-[color:var(--gold-strong)]">{stat.value}</div>
+              <p className="mt-3 text-[11px] uppercase tracking-[0.24em] text-[var(--subtle)]">{stat.label}</p>
+            </div>
+          ))}
+          <div className="px-4">
+            <div className="font-display text-5xl text-[color:var(--gold-strong)]">{view.printers.length}</div>
+            <p className="mt-3 text-[11px] uppercase tracking-[0.24em] text-[var(--subtle)]">Active Printers</p>
           </div>
         </div>
       </div>
@@ -434,31 +415,44 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
 
   function renderPrintersContent() {
     return (
-      <div className={`grid gap-4 ${printerGridClass}`}>
-        {view.printers.map((printer, index) => (
-          <article
-            key={`${printer.name}-${index}`}
-            className="luxury-panel rounded-[26px] p-5 transition hover:-translate-y-1 hover:border-[color:var(--gold)]/25"
-          >
-            <div className="mb-4 h-px w-16 bg-[linear-gradient(90deg,var(--gold),transparent)]" />
-            <div className="text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]">Printer {index + 1}</div>
-            <h2 className="font-display mt-3 text-2xl text-[var(--foreground)]">{printer.name}</h2>
-            <p className="mt-3 text-sm leading-7 text-[var(--muted)]">{printer.desc}</p>
-          </article>
-        ))}
+      <div>
+        <div className="mb-10 flex items-end justify-between border-b border-[color:var(--line)] pb-6">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.28em] text-[color:var(--gold)]">Spotlight</p>
+            <h2 className="font-display mt-3 text-4xl text-[var(--foreground)] sm:text-5xl">Recent Commissions</h2>
+          </div>
+          <Link href="/gallery" className="text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)] hover:text-[color:var(--gold)]">
+            View Archive
+          </Link>
+        </div>
+
+        <div className={`grid gap-6 ${printerGridClass}`}>
+          {view.printers.map((printer, index) => (
+            <article
+              key={`${printer.name}-${index}`}
+              className={`luxury-panel overflow-hidden rounded-[22px] p-6 transition duration-500 hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(212,175,55,0.08)] ${
+                index === 0 ? "sm:col-span-2 lg:min-h-[420px]" : ""
+              }`}
+            >
+              <p className="text-[11px] uppercase tracking-[0.22em] text-[color:var(--gold)]">Printer {index + 1}</p>
+              <h3 className="font-display mt-6 text-3xl text-[var(--foreground)]">{printer.name}</h3>
+              <p className="mt-4 max-w-xl text-sm leading-7 text-[var(--muted)]">{printer.desc}</p>
+            </article>
+          ))}
+        </div>
       </div>
     );
   }
 
   function renderSocialsContent() {
     return (
-      <div className="luxury-panel rounded-[30px] p-7 sm:p-8">
-        <div className="mb-6 border-b border-white/8 pb-4">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--subtle)]">Connect</p>
-          <h2 className="font-display mt-2 text-3xl text-[var(--foreground)]">التواصل</h2>
+      <div className="luxury-panel rounded-[28px] p-8">
+        <div className="mb-8 border-b border-[color:var(--line)] pb-6 text-center">
+          <p className="text-[11px] uppercase tracking-[0.28em] text-[color:var(--gold)]">Connect</p>
+          <h2 className="font-display mt-3 text-4xl text-[var(--foreground)]">التواصل</h2>
         </div>
 
-        <div className={`grid gap-4 ${socialGridClass}`}>
+        <div className={`grid gap-5 ${socialGridClass}`}>
           {view.socials.map((social) => {
             const iconSrc = social.iconSrc || socialIconFallbacks[social.key];
 
@@ -470,7 +464,7 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
                 aria-label={`${social.name} ${social.handle}`}
                 target={social.href.startsWith("http") ? "_blank" : undefined}
                 rel={social.href.startsWith("http") ? "noreferrer" : undefined}
-                className="group flex items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] p-3 transition hover:-translate-y-1 hover:border-[color:var(--gold)]/28 hover:bg-white/[0.06]"
+                className="group flex flex-col items-center justify-center rounded-[22px] border border-[color:var(--line)] bg-black/20 px-4 py-6 text-center transition hover:-translate-y-1 hover:border-[color:var(--gold)]/35"
               >
                 <span
                   className="relative flex items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-white shadow-lg shadow-black/15"
@@ -487,7 +481,8 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
                     className="h-full w-full object-cover"
                   />
                 </span>
-                <span className="sr-only">{social.handle}</span>
+                <span className="mt-4 text-sm font-semibold text-[var(--foreground)]">{social.name}</span>
+                <span className="mt-1 text-xs uppercase tracking-[0.16em] text-[var(--subtle)]">{social.handle}</span>
               </a>
             );
           })}
@@ -498,16 +493,17 @@ export function HomeClient({ initialContent }: { initialContent: SiteContent }) 
 
   function renderAboutContent() {
     return (
-      <div className="luxury-panel rounded-[30px] p-7 sm:p-9">
-        <div className="mb-6 border-b border-white/8 pb-4">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-[var(--subtle)]">About</p>
-          <h2 className="font-display mt-2 text-3xl text-[var(--foreground)]">نبذة عني</h2>
+      <div className="luxury-panel rounded-[28px] p-8 sm:p-10">
+        <div className="mb-10 text-center">
+          <p className="text-[11px] uppercase tracking-[0.28em] text-[color:var(--gold)]">Methodology</p>
+          <h2 className="font-display mt-3 text-4xl text-[var(--foreground)] sm:text-5xl">The Process</h2>
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2">
           {view.about.map((paragraph, index) => (
-            <p key={`${paragraph}-${index}`} className={`text-sm leading-8 text-[var(--muted)] ${index === 0 ? "lg:pl-4" : ""}`}>
-              {paragraph}
-            </p>
+            <article key={`${paragraph}-${index}`} className="rounded-[22px] border border-white/5 bg-black/20 p-6">
+              <div className="mb-5 font-display text-4xl text-[color:var(--gold)]">0{index + 1}</div>
+              <p className="text-sm leading-8 text-[var(--muted)]">{paragraph}</p>
+            </article>
           ))}
         </div>
       </div>

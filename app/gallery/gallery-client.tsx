@@ -556,42 +556,42 @@ export function GalleryClient({
     <main className="theme-shell min-h-screen text-[var(--foreground)]">
       <Nav active="gallery" />
 
-      <section className="mx-auto max-w-6xl px-5 pb-8 pt-8 sm:pt-10 lg:pt-14">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
-          <div className="luxury-panel rounded-[30px] p-6 backdrop-blur sm:p-8">
-            <p className="mb-3 inline-flex rounded-full border border-[color:var(--gold)]/25 bg-[color:var(--gold)]/8 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[color:var(--gold-strong)]">
-              Curated Gallery
-            </p>
-            <h1 className="font-display text-[clamp(2.8rem,10vw,4.8rem)] leading-[0.95] text-[var(--foreground)]">
-              معرض الأعمال
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)] sm:text-base">
-              {loading
-                ? "جاري تحديث الأعمال..."
-                : "عرض أكثر هدوءاً وأناقة للمجسمات، مع فلترة بسيطة وتأكيد أكبر على الصورة والخامة."}
-            </p>
+      <section className="mx-auto max-w-[1440px] px-5 pb-10 pt-10 sm:pt-12 lg:pt-16">
+        <div className="mb-12 max-w-4xl">
+          <h1 className="font-display text-[clamp(3.2rem,10vw,5.8rem)] leading-[0.95] text-[var(--foreground)]">
+            Masterpieces
+          </h1>
+          <p className="mt-5 max-w-3xl text-lg leading-9 text-[var(--muted)]">
+            {loading
+              ? "جاري تحديث الأعمال..."
+              : "A curated exploration of additive manufacturing as fine art. Browse our portfolio of high-fidelity prints, spanning from intricate resin miniatures to large-scale structural prototypes."}
+          </p>
+        </div>
 
-            <div className="mt-6 flex flex-wrap gap-2">
+        <div className="luxury-panel rounded-[24px] p-5 sm:p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-[11px] uppercase tracking-[0.22em] text-[var(--subtle)]">Filter by</span>
               <button
                 type="button"
                 onClick={() => setActiveFilter("all")}
-                className={`h-10 rounded-full border px-4 text-sm transition ${
+                className={`rounded-full border px-5 py-3 text-[11px] uppercase tracking-[0.18em] transition ${
                   activeFilter === "all"
-                    ? "border-[color:var(--gold)]/55 bg-[color:var(--gold)]/10 text-[color:var(--gold)]"
-                    : "border-white/10 text-white/45 hover:border-white/25 hover:text-white"
+                    ? "border-[color:var(--gold)] bg-[color:var(--gold)]/10 text-[color:var(--gold-strong)]"
+                    : "border-white/10 text-white/55 hover:border-[color:var(--gold)]/35 hover:text-white"
                 }`}
               >
-                الكل ({works.length})
+                All Projects
               </button>
               {materials.map((item) => (
                 <button
                   key={item}
                   type="button"
                   onClick={() => setActiveFilter(item)}
-                  className={`h-10 rounded-full border px-4 text-sm transition ${
+                  className={`rounded-full border px-5 py-3 text-[11px] uppercase tracking-[0.18em] transition ${
                     activeFilter === item
-                      ? "border-[color:var(--gold)]/55 bg-[color:var(--gold)]/10 text-[color:var(--gold)]"
-                      : "border-white/10 text-white/45 hover:border-white/25 hover:text-white"
+                      ? "border-[color:var(--gold)] bg-[color:var(--gold)]/10 text-[color:var(--gold-strong)]"
+                      : "border-white/10 text-white/55 hover:border-[color:var(--gold)]/35 hover:text-white"
                   }`}
                 >
                   {item}
@@ -600,18 +600,19 @@ export function GalleryClient({
             </div>
 
             {adminMode ? (
-              <div className="mt-6">
-                <button
-                  type="button"
-                  onClick={openAddModal}
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] px-5 text-sm font-bold text-black shadow-lg shadow-black/25 transition hover:opacity-90"
-                >
-                  <Plus size={17} />
-                  إضافة عمل
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={openAddModal}
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-[linear-gradient(135deg,var(--gold),var(--gold-strong))] px-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-black shadow-[0_0_20px_rgba(212,175,55,0.18)] transition hover:opacity-90"
+              >
+                <Plus size={16} />
+                Add Project
+              </button>
             ) : null}
           </div>
+        </div>
+
+        <div className="mt-8 flex justify-end">
 
           {visibleStatCards.length ? (
             <div className={`grid gap-4 sm:grid-cols-3 xl:grid-cols-1 ${settings.statsCompact ? "xl:max-w-[240px]" : ""}`}>
@@ -636,24 +637,28 @@ export function GalleryClient({
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl grid-cols-3 gap-3 px-4 pb-24 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))] sm:gap-5 sm:px-5">
+      <section className="mx-auto grid max-w-[1440px] grid-cols-1 gap-6 px-5 pb-24 md:grid-cols-12">
         {filteredWorks.length ? (
           filteredWorks.map((work, index) => (
             <article
               key={work.id}
-              className="animate-fade-up luxury-panel overflow-hidden rounded-[26px] transition hover:-translate-y-1 hover:border-[color:var(--gold)]/28 hover:shadow-2xl hover:shadow-black/35"
+              className={`animate-fade-up luxury-panel group relative overflow-hidden rounded-[24px] transition duration-700 hover:-translate-y-1 hover:shadow-[0_15px_50px_rgba(212,175,55,0.08)] ${
+                index === 0 ? "md:col-span-8 md:min-h-[560px]" : index === 1 ? "md:col-span-4 md:min-h-[560px]" : "md:col-span-6 md:min-h-[420px]"
+              }`}
               style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}
             >
               <button
                 type="button"
-                className="group relative block h-28 w-full overflow-hidden bg-black/30 text-right sm:h-64"
+                className={`relative block w-full overflow-hidden bg-black/30 text-right ${
+                  index === 0 ? "h-[560px]" : index === 1 ? "h-[560px]" : "h-[420px]"
+                }`}
                 onClick={() => work.images[0] && setLightbox({ work, index: 0 })}
               >
                 {work.images[0] ? (
                   <img
                     src={work.images[0]}
                     alt={work.name}
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    className="h-full w-full object-cover opacity-60 transition duration-700 group-hover:scale-105 group-hover:opacity-80"
                     loading="lazy"
                   />
                 ) : (
@@ -662,12 +667,12 @@ export function GalleryClient({
                   </div>
                 )}
                 {work.images.length > 1 ? (
-                  <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-xs text-white">
+                  <span className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full border border-[color:var(--gold)]/25 bg-black/70 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-[color:var(--gold-strong)]">
                     <Images size={13} />
                     {work.images.length}
                   </span>
                 ) : null}
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#09090b] via-[#09090b]/60 to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/45 to-transparent" />
                 {adminMode ? (
                   <span className="absolute right-3 top-3 flex gap-2 opacity-100 sm:opacity-0 sm:transition sm:group-hover:opacity-100">
                     <span
@@ -710,35 +715,30 @@ export function GalleryClient({
                     </span>
                   </span>
                 ) : null}
-              </button>
-
-              <div className="p-2.5 sm:p-5">
-                <h2 className="truncate text-xs font-semibold text-[var(--foreground)] sm:font-display sm:text-2xl">
-                  {work.name}
-                </h2>
-                <p className="mt-2 hidden min-h-12 text-sm leading-6 text-[var(--muted)] sm:block">
-                  {summarizeDescription(work.description)}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1 sm:mt-3 sm:gap-2">
-                  <Tag className="border-[color:var(--gold)]/25 bg-[color:var(--gold)]/10 text-[10px] text-[color:var(--gold)] sm:text-[color:var(--gold)]">
-                    {work.material}
-                  </Tag>
-                  {work.printHours !== "—" ? (
-                    <Tag className="hidden border-cyan-300/25 bg-cyan-300/10 text-cyan-300 sm:inline-flex">
-                      <Clock3 className="ml-1 inline h-3 w-3" />
-                      {work.printHours}h
+                <div className="absolute bottom-0 left-0 right-0 z-10 p-6 sm:p-8">
+                  <div className="mb-4 flex flex-wrap gap-2 opacity-0 transition duration-500 group-hover:opacity-100">
+                    <Tag className="border-[color:var(--gold)]/25 bg-black/70 text-[color:var(--gold-strong)]">
+                      {work.material}
                     </Tag>
-                  ) : null}
-                  <Tag className={`hidden sm:inline-flex ${colorClasses[work.colorMethod]}`}>
-                    <Palette className="ml-1 inline h-3 w-3" />
-                    {colorLabels[work.colorMethod]}
-                  </Tag>
+                    {work.printHours !== "—" ? (
+                      <Tag className="border-[color:var(--gold)]/25 bg-black/70 text-[color:var(--gold-strong)]">
+                        <Clock3 className="ml-1 inline h-3 w-3" />
+                        {work.printHours}h
+                      </Tag>
+                    ) : null}
+                    <Tag className="border-[color:var(--gold)]/25 bg-black/70 text-[color:var(--gold-strong)]">
+                      <Palette className="ml-1 inline h-3 w-3" />
+                      {colorLabels[work.colorMethod]}
+                    </Tag>
+                  </div>
+                  <h2 className={`font-display text-[var(--foreground)] drop-shadow-xl ${index === 0 ? "text-5xl" : "text-3xl"}`}>
+                    {work.name}
+                  </h2>
+                  <p className={`mt-4 max-w-2xl text-[var(--muted)] ${index === 0 ? "text-lg leading-8" : "text-base leading-7"}`}>
+                    {summarizeDescription(work.description)}
+                  </p>
                 </div>
-                <div className="mt-2 hidden items-center justify-between text-xs text-[var(--subtle)] sm:flex">
-                  <span>عرض التفاصيل</span>
-                  <span>{work.addedAt ? new Date(work.addedAt).getFullYear() : ""}</span>
-                </div>
-              </div>
+              </button>
             </article>
           ))
         ) : (
