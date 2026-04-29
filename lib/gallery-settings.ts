@@ -7,6 +7,7 @@ export const gallerySettingsPath = "site/gallery-settings.json";
 
 export const defaultGallerySettings: GallerySettings = {
   statsCompact: false,
+  statsLayout: "row",
   hiddenStatCards: [],
 };
 
@@ -21,6 +22,7 @@ export function normalizeGallerySettings(
 
   return {
     statsCompact: Boolean(partial?.statsCompact),
+    statsLayout: partial?.statsLayout === "stack" ? "stack" : "row",
     hiddenStatCards,
   };
 }

@@ -260,6 +260,13 @@ export function GalleryClient({
     },
   ].filter((card) => !settings.hiddenStatCards.includes(card.key));
 
+  const statsLayoutClasses =
+    settings.statsLayout === "stack"
+      ? settings.statsCompact
+        ? "mx-auto max-w-[260px] grid-cols-1"
+        : "mx-auto max-w-[320px] grid-cols-1"
+      : "w-full grid-cols-1 md:grid-cols-3";
+
   useEffect(() => {
     const storedPassword = sessionStorage.getItem("adminPw") || "";
     if (!storedPassword) return;
@@ -612,14 +619,15 @@ export function GalleryClient({
           </div>
         </div>
 
-        <div className="mt-8 flex justify-end">
-
+        <div className="mt-8">
           {visibleStatCards.length ? (
-            <div className={`grid gap-4 sm:grid-cols-3 xl:grid-cols-1 ${settings.statsCompact ? "xl:max-w-[240px]" : ""}`}>
+            <div className={`grid gap-4 ${statsLayoutClasses}`}>
               {visibleStatCards.map((card) => (
                 <div
                   key={card.key}
-                  className={`luxury-panel rounded-[24px] ${settings.statsCompact ? "p-4" : "p-5"}`}
+                  className={`luxury-panel rounded-[24px] ${
+                    settings.statsCompact ? "min-h-[132px] p-4" : "min-h-[158px] p-5"
+                  }`}
                 >
                   <p className="text-[11px] uppercase tracking-[0.18em] text-[var(--subtle)]">
                     {statCardLabels[card.key]}
@@ -649,7 +657,7 @@ export function GalleryClient({
             >
               <button
                 type="button"
-                className={`relative block aspect-[0.76] w-full overflow-hidden bg-black/30 text-right md:aspect-auto ${
+                className={`relative block aspect-[0.94] w-full overflow-hidden bg-black/30 text-right md:aspect-auto ${
                   index === 0 ? "h-[560px]" : index === 1 ? "h-[560px]" : "h-[420px]"
                 }`}
                 onClick={() => work.images[0] && setLightbox({ work, index: 0 })}
@@ -731,7 +739,9 @@ export function GalleryClient({
                       {colorLabels[work.colorMethod]}
                     </Tag>
                   </div>
-                  <h2 className={`font-display line-clamp-2 text-[var(--foreground)] drop-shadow-xl ${index === 0 ? "text-sm md:text-5xl" : "text-sm md:text-3xl"}`}>
+                  <h2 className={`font-display line-clamp-2 text-[var(--foreground)] drop-shadow-xl ${
+                    index === 0 ? "text-[13px] md:text-5xl" : "text-[13px] md:text-3xl"
+                  }`}>
                     {work.name}
                   </h2>
                   <p className={`mt-4 hidden max-w-2xl text-[var(--muted)] md:block ${index === 0 ? "text-lg leading-8" : "text-base leading-7"}`}>
@@ -855,7 +865,7 @@ export function GalleryClient({
             <div className="mb-5 flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h2 className="text-xl font-black text-white">واجهة المعرض</h2>
-                <p className="mt-1 text-sm text-white/45">تحكم في الكروت العلوية: تصغير أو إخفاء.</p>
+                <p className="mt-1 text-sm text-white/45">تحكم في الكروت العلوية: العرض، التصغير، والإخفاء.</p>
               </div>
               <button
                 type="button"
@@ -867,6 +877,33 @@ export function GalleryClient({
             </div>
 
             <div className="space-y-4">
+              <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                <h3 className="mb-3 text-sm font-black text-white">ترتيب الكروت العلوية</h3>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {[
+                    { key: "row" as const, label: "عرض أفقي", hint: "ثلاثة بلوكات جنب بعض بعرض الصفحة." },
+                    { key: "stack" as const, label: "عرض مكدس", hint: "بلوكات فوق بعض مثل الشريط الجانبي." },
+                  ].map((option) => {
+                    const active = settings.statsLayout === option.key;
+                    return (
+                      <button
+                        key={option.key}
+                        type="button"
+                        onClick={() => updateGallerySettings({ statsLayout: option.key })}
+                        className={`rounded-2xl border px-4 py-3 text-right transition ${
+                          active
+                            ? "border-[color:var(--gold)]/45 bg-[color:var(--gold)]/10 text-[color:var(--gold-strong)]"
+                            : "border-white/10 bg-black/20 text-white/70 hover:border-white/20 hover:text-white"
+                        }`}
+                      >
+                        <div className="text-sm font-bold">{option.label}</div>
+                        <div className="mt-1 text-xs text-white/45">{option.hint}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -1174,57 +1211,67 @@ export function GalleryClient({
             </>
           ) : null}
 
-          <div className="w-full max-w-4xl px-14 text-center">
-            <img
-              src={lightbox.work.images[lightbox.index]}
-              alt={lightbox.work.name}
-              className="mx-auto max-h-[72vh] max-w-full rounded-lg object-contain"
-            />
-            <h2 className="mt-5 text-xl font-black text-white">{lightbox.work.name}</h2>
-            {adminMode ? (
-              <div className="mt-4 flex justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    openEditModal(lightbox.work);
-                    setLightbox(null);
-                  }}
-                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/10 px-4 text-sm font-bold text-white transition hover:border-[#fb923c]/40 hover:text-[#fb923c]"
-                >
-                  <Pencil size={15} />
-                  تعديل
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    deleteWork(lightbox.work);
-                    setLightbox(null);
-                  }}
-                  className="inline-flex h-10 items-center gap-2 rounded-lg border border-red-300/20 bg-red-600/90 px-4 text-sm font-bold text-white transition hover:bg-red-500"
-                >
-                  <Trash2 size={15} />
-                  حذف
-                </button>
-              </div>
-            ) : null}
-            <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <Tag className="border-[#fb923c]/25 bg-[#fb923c]/10 text-[#fb923c]">
-                {lightbox.work.material}
-              </Tag>
-              {lightbox.work.printHours !== "—" ? (
-                <Tag className="border-cyan-300/25 bg-cyan-300/10 text-cyan-300">
-                  {lightbox.work.printHours}h
-                </Tag>
+          <div
+            className="flex w-full max-w-5xl items-center justify-center px-4 sm:px-14"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setLightbox(null);
+            }}
+          >
+            <div
+              className="w-full text-center"
+              onMouseDown={(event) => event.stopPropagation()}
+            >
+              <img
+                src={lightbox.work.images[lightbox.index]}
+                alt={lightbox.work.name}
+                className="mx-auto max-h-[72vh] max-w-full rounded-lg object-contain"
+              />
+              <h2 className="mt-5 text-xl font-black text-white">{lightbox.work.name}</h2>
+              {adminMode ? (
+                <div className="mt-4 flex justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      openEditModal(lightbox.work);
+                      setLightbox(null);
+                    }}
+                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/10 bg-white/10 px-4 text-sm font-bold text-white transition hover:border-[#fb923c]/40 hover:text-[#fb923c]"
+                  >
+                    <Pencil size={15} />
+                    تعديل
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      deleteWork(lightbox.work);
+                      setLightbox(null);
+                    }}
+                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-red-300/20 bg-red-600/90 px-4 text-sm font-bold text-white transition hover:bg-red-500"
+                  >
+                    <Trash2 size={15} />
+                    حذف
+                  </button>
+                </div>
               ) : null}
-              <Tag className={colorClasses[lightbox.work.colorMethod]}>
-                {colorLabels[lightbox.work.colorMethod]}
-              </Tag>
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
+                <Tag className="border-[#fb923c]/25 bg-[#fb923c]/10 text-[#fb923c]">
+                  {lightbox.work.material}
+                </Tag>
+                {lightbox.work.printHours !== "—" ? (
+                  <Tag className="border-cyan-300/25 bg-cyan-300/10 text-cyan-300">
+                    {lightbox.work.printHours}h
+                  </Tag>
+                ) : null}
+                <Tag className={colorClasses[lightbox.work.colorMethod]}>
+                  {colorLabels[lightbox.work.colorMethod]}
+                </Tag>
+              </div>
+              {lightbox.work.images.length > 1 ? (
+                <p className="mt-4 text-xs text-white/40">
+                  {lightbox.index + 1} / {lightbox.work.images.length}
+                </p>
+              ) : null}
             </div>
-            {lightbox.work.images.length > 1 ? (
-              <p className="mt-4 text-xs text-white/40">
-                {lightbox.index + 1} / {lightbox.work.images.length}
-              </p>
-            ) : null}
           </div>
         </div>
       ) : null}
